@@ -1,0 +1,18 @@
+# CHEM 400 - Electrochemistry for Energy Conversion and Storage
+# Python environment for the lecture notebooks in this folder.
+#
+#   pip install -r requirements.txt
+#
+# --- imported directly by the notebooks and by Resources/echem.py ---
+numpy>=1.26            # arrays and maths, every lesson
+matplotlib>=3.8        # all figures; the course style sheet targets 3.8+
+scipy>=1.11            # scipy.special (erf, erfc, erfcx) in echem.py
+ipywidgets>=8.1        # @interact sliders in the interactive figures
+ipympl>=0.9            # backs the `%matplotlib widget` magic (Reference-Python-A)
+schemdraw>=0.19        # cell and circuit diagrams (L06, L07, L09, L10, L15, L31)
+ipython>=8.0           # IPython.display (Image, Video, display)
+
+# --- the notebook environment itself ---
+jupyterlab>=4.0
+notebook>=7.0
+ipykernel>=6.0
