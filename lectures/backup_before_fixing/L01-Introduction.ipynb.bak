@@ -1,0 +1,765 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Lesson 1: Introduction to Jupyter Notebooks and Basic Python\n",
+    "The majority of material for this course will be delivered via Jupyter Notebooks. This environment provides a level of interactivity with data and information that is not easily attainable in other settings. The material will be delivered using the Python language with the assistance of a number of open-source packages. You do not need to know anything about Python to get through the course.\n",
+    "\n",
+    "The objectives of this lesson are:\n",
+    "- to describe the file and folder layout for the course\n",
+    "- to describe the basic functionality of Jupyter Notebooks\n",
+    "- to provide an introduction to the python language\n",
+    "---"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "tags": []
+   },
+   "source": [
+    "# Course Layout: Folders and Files\n",
+    "The notebooks in this course are designed using a series of folders to keep everything organized. The layout of directories is:\n",
+    "- Main Directory - contains course syllabus and table of contents\n",
+    "    - Lecture - contains lecture notes\n",
+    "    - Resources - contains objects used in the course \n",
+    "        - image - where all course-related images are stored \n",
+    "        - data - data used within lessons is stored here\n",
+    "        - pdf - some useful PDF files that will be introduced and discussed\n",
+    "    - Workspace - a scratch space used for output from the notebooks. Any figures or files generated should be directed here. \n",
+    "    \n",
+    "The code is written with directories defined in a *relative* way - errors will appear if the folder layout is changed."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "tags": []
+   },
+   "source": [
+    "# Jupyter Notebooks\n",
+    "\n",
+    "Jupyter Notebooks provide an interactive way to use computer code to accomplish tasks. The notebooks are composed of a series of *cells* that are assigned a type:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- **Markdown Cells** can provide formatted text, equations, images, tables, or anything else you can think to put in them. They can be written as simple text, or advanced formatting can be introduced using *HTML* or the *Markdown* language (see https://daringfireball.net/projects/markdown/syntax)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "s = 'Code Cells can use the selected <kernel> to execute code. We will be using the python language for this course.'\n",
+    "print(s)"
+   ]
+  },
+  {
+   "cell_type": "raw",
+   "metadata": {},
+   "source": [
+    "- **Raw Cells** provide simple, unformatted text."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "tags": []
+   },
+   "source": [
+    "You can change the type of cell by:\n",
+    "- Selecting it - a selected cell has a blue border surrounding it and a blue line on the left side\n",
+    "- Selecting the type for the dropdown menu at the top, or pressing the suitable hotkey (`y` for code, `m` for markdown, `r` for raw; hotkeys only work from outside the cell -- press `Esc`)\n",
+    "\n",
+    "\n",
+    "\n",
+    "Our Jupyter notebooks will deliver material and provide the ability to interact with equations and data by alternating between markdown and code type cells.\n",
+    "\n",
+    "\n",
+    "**Important**: To progress through the document you need to *run* cells by pressing `Shift+Enter`, or by clicking the play button in the top bar.\n",
+    "- Code blocks are executed *in the order that you run them*! The order you run them is recorded as an integer in a set of square brackets [] on the top left corner of the code cell."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Why use Jupyter Notebooks?\n",
+    "\n",
+    "Jupyter is increasing in popularity for data analysis because it provides a form of digital notebook in which you can use virtually any computer language, work locally or on the cloud (for example, you can access multi-GB databases without having to download them), and most importantly - you have total control over every step of your work! The interface is natively web-browser based and we will be making use of a JupyterHub, which is software that enables all code to be run on a remote server. With this setup, you can do this entire course on your cell phone or a Raspberry Pi if you choose! \n",
+    "\n",
+    "You have a choice of working in three different environments: \n",
+    "- standard notebooks - original format, one dedicated browse tab per notebook page you open.\n",
+    "- JupyterLab - one browser tab that can have many sub-tabs for multiple notebooks (my favorite; default on our server)\n",
+    "- Nteract - I've never used it!\n",
+    "\n",
+    "You can navigate to these other environments by changing the address in the URL bar of your browser: \n",
+    "- smithteaching.uwaterloo.ca/user/**username**/tree\n",
+    "- smithteaching.uwaterloo.ca/user/**username**/lab\n",
+    "- smithteaching.uwaterloo.ca/user/**username**/nteract\n",
+    "    "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Python Basics: Objects and Variables\n",
+    "When using Python we will be defining and manipulating <font color='blue'>*objects*</font>. Named <font color='blue'>*variables*</font> can be assigned to objects during creation, which provides a key word that grants access to that object.\n",
+    "\n",
+    "Examples of such objects include figures, axes, or variables such as numbers or text. Python can be used in either an *object-oriented* or a *procedural* fashion. We will be sticking to a procedural type approach. Basic use in this fashion includes the definition of objects and subsequent modification of them.\n",
+    "\n",
+    "Although we are operating in a procedural fashion, we will be making use of objects. These include simple python objects such as strings (text), integers and floats (decimal point numbers). It will also include more advanced objects that are defined in packages that we will begin to import next lesson. For example,  *numeric arrays* from the numpy package will be used. These arrays hold information in a similar way as an excel spreadsheet, but can go up to arbitrary n-dimensions with ease!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# String Objects\n",
+    "Lets tackle some simple text first. Text is stored as objects called <font color=blue>*strings*</font>. It is defined by equating a variable name with some text inside single or double quotations:\n",
+    "```\n",
+    "variable_name = 'text'\n",
+    "```"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "my_string = \"Hello class!\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "There are numerous actions, or <font color=blue>*methods*</font>, that we can perform on these objects. Here are a few examples using strings. \n",
+    "- Note that a hashtag (#) turns the rest of the line into a <font color=blue>*comment*</font>. Comments are NOT read by the kernel.\n",
+    "\n",
+    "Note that the variable defined in the cell above (my_string) is now stored in memory, so we can recall it in later cells:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# The hashtag makes everything AFTER it invisible to Python. This is a COMMENT, which is a fantastic way to keep simple notes. Remember though, keep it clean!\n",
+    "print(my_string)                       # show the contents of the string   \n",
+    "print( len(my_string) )                # Give the length of the variable - here it is 10 letters, a space and a !\n",
+    "print(my_string[0:5])                  # splice the string\n",
+    "\n",
+    "print(my_string[0:5] + my_string[-6:-1])  # CONCATENATE a string with a simple '+' operator. The numbers in the square brackets are integers that define the position index. \n",
+    "                                      # Change the index values and get comfortable with how they work.\n",
+    "    \n",
+    "print(type(my_string))                 #see the OBJECT TYPE. Note that the print method here has a new string directly fed to it.\n",
+    "\n",
+    "print('\\n %s \\n The object is a %s that has %s characters' %(my_string, type(my_string), len(my_string)))  #Here we do 3 things: \n",
+    "                                      # use 'escape sequence' to add line breaks (\\n), \n",
+    "                                      # define a new string on the fly (my_string is stored in memory, the new string is not), \n",
+    "                                      # and use a formatting command ( %s ) to insert two objects into the string. "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Pay close attention to the formatting of the <font color='blue'>%s</font> command in the final code line. \n",
+    "- <font color='blue'>%s</font> goes INSIDE the quotation marks defining the string\n",
+    "- <font color='blue'>%()</font> is placed after the quotation marks, with a comma separated list inside the brackets.\n",
+    "    - the %s tags are sequentially replaced by the values defined in the comma separated list \n",
+    "\n",
+    "All Python objects have a selection of methods that can be used to modify/interact with them. If you want to perform an action on an object/variable, you can do it like this:\n",
+    "```\n",
+    "variable.method(arguments)\n",
+    "```\n",
+    "\n",
+    "Here are several examples with our string variable:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print('Original: %s' %(my_string))\n",
+    "\n",
+    "my_string = my_string.replace('!', '.')\n",
+    "print('Mod1: %s' %(my_string))\n",
+    "\n",
+    "my_string = my_string.upper()\n",
+    "print('Mod2: %s' %(my_string))\n",
+    "\n",
+    "my_string = my_string.title()\n",
+    "print('Mod3: %s' %(my_string))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Run the cell above again and observe what happens to the output. The lesson is: **BE CAREFUL!**\n",
+    "- If you don't see what happened, go back to the first code cell and run the cell again to reset the my_string variable to its original value.\n",
+    "\n",
+    "Jupyter Notebooks are broken into individual code blocks, but the <font color=blue>*kernel*</font> will execute the code in the order that YOU tell it to. It does not need to progress linearly from top to bottom. If you run a cell twice in a row, make sure that you didn't accidentally modify a variable twice as much as you intended! You can see which order the cells were run by looking at the numbers in [ ] on the top left of each code block.\n",
+    "\n",
+    "**If your notebook is misbehaving itself** and you simply can't figure out what went wrong, it might be a good idea to **Restart the Kernel**. You do this by clicking `Kernel` in the menu bar, and saying `Restart Kernel` or `Restart Kernel and Clear Outputs`. \n",
+    "- This will DELETE ALL variables and objects from memory. All code in your notebook will be effectively reset."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Numeric Objects\n",
+    "Of course, as scientists, we want to focus on numbers rather than strings. Python comes with three basic number classes:\n",
+    "- <font color=blue>*int*</font> are integers\n",
+    "- <font color=blue>*float*</font> are floating point numbers\n",
+    "- <font color=blue>*complex*</font> are complex numbers\n",
+    "\n",
+    "You can perform all basic operations the same way you would in Microsoft Excel (+ - * /). More advanced math operations can be done in simple ways:\n",
+    "- <font color=blue>*//*</font> divides, chops off decimal and provides you the integer\n",
+    "- <font color=blue>**</font> exponential\n",
+    "- <font color=blue>%</font> divides and provides you the *remainder*\n",
+    "\n",
+    "Pay careful attention to how you define your numeric variables because it sets their <font color=blue>*type*</font>! In the examples below, notice that mixing int and float yields a response as a float. This minimizes chances of error in your mathematical operations, BUT some methods or functions require int as inputs and will crash if you try give it a float! If you are having errors in your code and don't understand them, check to make sure that your variables are the correct TYPE/CLASS."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "a = 9\n",
+    "b = 5.\n",
+    "print(f'a is {a}, a {type(a)}. \\nb is {b}, a {type(b)} \\n') # an 'f-string' inserts variables into strings\n",
+    "\n",
+    "a = float(a)                                             # here, we redefine a variable as a modified version of the old one.\n",
+    "a = float(2)                                             # achieves similar outcome. A number without a decimal is defined by default as an int, but we can force it to be a float.\n",
+    "b = int(b)                                               # here, we redefine the type\n",
+    "print(f'a is now {a}, a  {type(a)} \\nb is now {b}, a {type(b)} \\n')\n",
+    "\n",
+    "print('Demonstration of operations:')\n",
+    "print('%s/%s = %s' %(b, a, b/a))                         # an (older) alternative to f-strings\n",
+    "print('%s//%s = %s' %(b, a, b//a))\n",
+    "print('%s %s %s = %s' %(b, '%', a, b%a))\n",
+    "print('%s %s %s = %s' %(b, '**', a, b**a))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "There exists an enormous number of operations you can perform on numeric objects, ranging from trivial to complex. \n",
+    "- **Remember, you do not need to memorize all the syntax/code to make use of this environment!** Plan what you want to accomplish, then Google or read documentation to find a suitable way to accomplish that specific task.\n",
+    "\n",
+    "A few examples of operations on numeric objects:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "print(round(2/5))       # round to nearest integer\n",
+    "print(round(3/5))\n",
+    "print(abs(-200.))       # return absolute value"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Variables: The Basics\n",
+    "You can name variables *almost* anything you like, but a few things must be kept in mind.\n",
+    "- A variable name that relates to its purpose makes it easy to read your code, which saves time for you and others\n",
+    "- Long variable names are a nuisance to continually type\n",
+    "- Python has some <font color=\"blue\">*reserved keywords*</font>, which are words associated with core functionality. Attempting to name your variable with any of them will result in an error. These keywords include:\n",
+    "    -  False None True and as assert async await break class continue def del elif else except finally for from global if import in is lambda nonlocal not or pass raise return try while yield\n",
+    "    - You can always print the current list with `import keyword` followed by `print(keyword.kwlist)`\n",
+    "- It is common to use the letters *i, j, k* as integer counters when looping code (covered in Lesson 2)\n",
+    "- While nothing will stop you from using any formatting, it is most common to use underscores to link words rather than capitalization: mean_height is more *pythonic* than MeanHeight\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Boolean Objects\n",
+    "**True** and **False** (capitalized) have special meaning in code. These are referred to as <font color=\"blue\">*booleans*</font>.\n",
+    "\n",
+    "### Logical Operators\n",
+    "Booleans are important for the use of <font color=\"blue\">*logical operators*</font>, which come in several flavors:\n",
+    "- *comparison operators*: compare two objects together and return a *boolean* (True/False)\n",
+    "    - `==` equal to\n",
+    "    - `!=` not equal to\n",
+    "    - `>` and `<` greater than and less than\n",
+    "    - `>=` and `<=` greater or equal and less or equal\n",
+    "\n",
+    "\n",
+    "- *conditional statements*\n",
+    "    - `if` pairs with a comparison operator to determine whether to proceed with execution of some code (generally looking for a *True* value)\n",
+    "    - `else` defines what should happen with the *if* statement is False\n",
+    "    - `elif` allows you to have a multi-step statement (if...else if...else)\n",
+    "\n",
+    "\n",
+    "- *loops*\n",
+    "    - `for` perform code on a well-defined loop\n",
+    "    - `while` keep looping through code while some statement is true\n",
+    "\n",
+    "\n",
+    "- *logical operators*: allow more complex comparisons and loops\n",
+    "    - `and` `or` `not`\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# We will use the variables we defined above for a simple mathematical check.\n",
+    "if a == b:\n",
+    "    print('\\na and b are equal')  # NOTICE: there are 4 spaces in front of this code. The if statement ends by starting a new line that is NOT indented\n",
+    "elif a > b:\n",
+    "    print(f'\\n{a} is larger than {b}')  \n",
+    "else:\n",
+    "    print(f'\\n{b} is larger than {a}')  \n",
+    "\n",
+    "\n",
+    "print('\\nWe can also apply some logical operators to strings:')    \n",
+    "print(my_string == \"Hello\")\n",
+    "print(my_string[0:5] == \"Hello\")\n",
+    "\n",
+    "if type(my_string) == str:                              # An example of nested conditional statements, and conditional statements on strings.\n",
+    "    print('\\nmy_string is a python string')\n",
+    "    if (my_string.find('C')) != -1:                         # the str.find() method searches the str and gives an index (integer) when it finds that letter. If no letter is found, it returns -1.\n",
+    "        print('  It does contain a capital letter C')\n",
+    "    if my_string.find('z') != -1:\n",
+    "        print('Your string contains a letter z')\n",
+    "\n",
+    "print('\\nI hope you can see the potential power inherent in logical operators!')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Mutability and Identity\n",
+    "The concept of <font color=\"blue\">*mutability*</font> can be confusing to newcomers to computer code. Mutability refers to the ability to change an object/variable after you create it. \n",
+    "\n",
+    "**Int, float and complex** numbers in python are immutable. Once defined, **they cannot be modified**! Changes require the redefinition of the object. You can see this in the cell below.\n",
+    "- The `id(variable_name)` command tells you where in the computer's memory that object is stored"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "z = 1\n",
+    "print(id(z))\n",
+    "z = 2\n",
+    "print(id(z))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "This leads to some interesting traps for the unwary! Watch what happens in the next cell:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "z = 1\n",
+    "x = z\n",
+    "print(f\"First:\\nz = {z} at {id(z)} \\nx = {x} at {id(x)}\")\n",
+    "\n",
+    "z = 2\n",
+    "print(f\"Now:\\nz = {z} at {id(z)} \\nx = {x} at {id(x)}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We defined an int with `z = 1` then defined a second variable, x, which pointed at this first object. When we **redefined** z as a different integer we **did not change** the first object -- x still points at the original object and z now points at a new one!\n",
+    "\n",
+    "This same situation happens below:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "z = 3\n",
+    "print(f\"First:\\nz = {z} at {id(z)}\")\n",
+    "z = z + 1\n",
+    "print(f\"Now:\\nz = {z} at {id(z)}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "If you are ever in doubt, you can use the `is` command. This is NOT checking for equivalence in values, it is checking to see whether two variables refer to the same object. In short, it is checking equivalence of the object IDs:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "z = 1\n",
+    "x = z\n",
+    "print(z is x)\n",
+    "\n",
+    "z = 2\n",
+    "print(z is x)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Strings are also immutable objects."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "z=\"Test \"\n",
+    "print(z + str(id(z)))\n",
+    "\n",
+    "z = z.replace('Test','Did we define a new object? ')\n",
+    "print(z+str(id(z)))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Lists\n",
+    "\n",
+    "A <font color=blue>*list*</font> is a mutable array of objects. You can make a list of as many different types of objects as you like - a list can even contain a second list nested inside of it. It is defined with a single set of **square brackets**, with objects separated by commas.\n",
+    "```\n",
+    "variable_name = [var1, var2, ...]\n",
+    "``` \n",
+    "\n",
+    "Lists are *indexed*, you can access entries with square brackets. **Careful, indexes start from 0**!\n",
+    "```\n",
+    "variable_name[int]\n",
+    "```"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "my_list = [1, my_string, 'string defined on the fly']   # A list containing 3 objects\n",
+    "\n",
+    "print(f\"{my_list} is a {type(my_list)}\")\n",
+    "print(f\"{my_list[0]} is a {type(my_list[0])}\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Objects with mutability MUST BE HANDLED WITH CARE! \n",
+    "\n",
+    "A frequent shortcut people try to take is to duplicate/copy one object by creating a new variable that points at an old one. However, if the original object is mutable, watch what happens..."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# define a new variable name that points to a MUTABLE list\n",
+    "my_new_list = my_list\n",
+    "print(my_list)\n",
+    "print(my_new_list)\n",
+    "\n",
+    "# redefine the first object in the original list\n",
+    "my_list[0] = 'removed integer'\n",
+    "\n",
+    "# check for equivalence\n",
+    "print(my_list is my_new_list)\n",
+    "\n",
+    "# print both for inspection\n",
+    "print(my_list)\n",
+    "print(my_new_list)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We created a second variable that pointed at the original list. This seems like an intuitive way to create a new object, but you can see the problems that arise when we modify the original list. \n",
+    "- We can see from the `is` command that the two variables point to the same object. \n",
+    "- Unlike what we saw with immutable strings and numbers, we now changed the content of the original (mutable) list on-the-spot. \n",
+    "- This can lead to extensive errors in calculations if you are not careful! If you want to duplicate or copy an object, the best choice is to formally copy/duplicate it:\n",
+    "\n",
+    "```\n",
+    "variable.copy()\n",
+    "```"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "my_new_list = my_list.copy()\n",
+    "my_list[1] = 10\n",
+    "print(my_list is my_new_list)\n",
+    "print(my_new_list)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Another way to copy a list is to iterate it by explicitly defining a new variable. The indexing of lists can be taken advantage of to make a new, more selective list."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "my_new_list = list(my_list)\n",
+    "print(my_new_list == my_list)  # check for content equivalence\n",
+    "print(my_new_list is my_list)  # check for identity equivalence\n",
+    "\n",
+    "my_new_list = list(my_list[0:2])    # note that the index now has a : in it. This signifies the entire range between the two numbers. \n",
+    "print(my_new_list)                  # note how the index counting works. It copied index 0 to 2, not including 2. (i.e. indexes 0 and 1 were copied)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "It is very easy to manipulate the size and contents of a list.\n",
+    "- add *new_items* to *variable*\n",
+    "```\n",
+    "variable.append(new_items)\n",
+    "```\n",
+    "\n",
+    "\n",
+    "- add all elements from *list2* into *variable*\n",
+    "```\n",
+    "variable.extend(list2)\n",
+    "```\n",
+    "\n",
+    "\n",
+    "- add *new_item* into *variable* at the given index\n",
+    "```\n",
+    "variable.insert(index, new_item)\n",
+    "```\n",
+    "\n",
+    "\n",
+    "- removes the first occurrence of *item* from *variable*\n",
+    "```\n",
+    "variable.remove(item)\n",
+    "``` \n",
+    "\n",
+    "\n",
+    "More methods exist, such as including sort(), reverse() and count(). "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Tuples\n",
+    "A <font color=blue>*Tuple*</font> is a essentially an immutable form of a list. They are created using normal, rounded brackets.\n",
+    "```\n",
+    "variable_name = (var1, var2, ...)\n",
+    "``` \n",
+    "\n",
+    "Tuples are also *indexed*, you can access entries with square brackets. \n",
+    "```\n",
+    "variable_name[int]\n",
+    "```\n",
+    "\n",
+    "Lets try repeat all of the steps we used for lists:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "my_tuple = (1, my_string, 'defined on the fly')   #A tuple containing 3 objects\n",
+    "\n",
+    "print(f\"{my_tuple} is a {type(my_tuple)}\")\n",
+    "print(f\"{my_tuple[0]} is a {type(my_tuple[0])}\")\n",
+    "\n",
+    "my_new_tuple = my_tuple\n",
+    "print(my_tuple is my_new_tuple)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Now lets try redefine one of the objects:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "my_tuple[0] = 'removed integer'"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Note the error** - Python will not let you modify the immutable contents of a tuple. However, one small thing to be wary about is that while the tuple is immutable it may contain mutable objects such as lists. To see this in action, we will create a tuple that contains a list. We can then modify an item in the list and see the effect."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "t = (1, [1,2,3,4], 5)\n",
+    "print(t)\n",
+    "t[1][0] = 0  # note how we used double indices here\n",
+    "print(t)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Note that the first item in the internal list was changed! \n",
+    "- The tuple is immutable. It will always point to the same 3 objects.\n",
+    "- The list, which is object 2 in the tuple, is mutable. We can continually change it without redefining where it is in the system's memory."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Wrapping up\n",
+    "This notebook provides a basic introduction and attempts to highlight some of the peculiarities that often lead beginners off-track. It is important to look over the notebook a few times and try to understand exactly what is going on in each example. However, don't worry about trying to memorize everything right now. You learn to effectively use code by writing it, making mistakes, then debugging your code to resolve those mistakes. \n",
+    "\n",
+    "We covered a lot of information! Make sure that you do understand the common object types (int, str, etc.) and how they differ. Some of these types are quite similar, but they are all unique in important ways. Trying to use a float where a method expects an int will lead your code to crash!\n",
+    "\n",
+    "Lets end this lesson by creating a <font color=blue>*function*</font> of our own:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def my_function():\n",
+    "    print(\"Goodbye class!\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Functions are a useful way to repeat a process throughout your notebook or file. The function code itself must be executed before it can be used, so functions are typically defined near the top of a notebook or code file. After that, we can call it anytime we need it.\n",
+    "- Formatting is important. Each line inside the function should be indented by 4 spaces (or 1 tab).\n",
+    "- Typing a new line with no indentation signals that the function is over"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "my_function()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "# Practice Assignment\n",
+    "\n",
+    "The best way to learn python is by using it. Explore the concepts introduced above:\n",
+    "\n",
+    "1. Create a variety of strings, ints or floats and think about how you would use them in your research. \n",
+    "2. Apply some of the methods introduced above to modify each of these types of variables. \n",
+    "3. Format a print() command to give you a sentence that incorporates variables into it. \n",
+    "4. Use `shift+tab` or `tab` to explore methods that are NOT introduced above."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python (updated)",
+   "language": "python",
+   "name": "fullyupdated"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

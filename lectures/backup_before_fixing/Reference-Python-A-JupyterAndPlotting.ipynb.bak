@@ -1,0 +1,487 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Reference A: More Advanced Jupyter and Python\n",
+    "\n",
+    "Python is a language that is extensively used in scientific research. The language is accessible, yet powerful. This has led to the development of a vast array of open-source code libraries that can be **imported** into your code to provide additional functionality. This provides incredible flexibility to researchers who wish to customize their working routines. This lesson will explore the basics of importing and using modules, with a focus on mathematical and plotting capabilities.\n",
+    "\n",
+    "The learning objectives for this lesson are:\n",
+    "- to gain a basic understanding of python packages/modules\n",
+    "- to learn how to create and modify data sets using the numpy package\n",
+    "- to learn how to visualize data using the matplotlib.pyplot package\n",
+    "---\n",
+    "\n",
+    "*Self-paced reference. The delivered lesson is Lesson 2, which covers the essential parts of this notebook.*"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Python Packages (or Modules):\n",
+    "The first thing you typically see in python code is a series of `import` commands. The Python language is structured as a light-weight core package with basic functionality. Python packages, or modules, can then be imported to add extra functionality. There exists an extensive selection of such packages, with each optimized to perform specific types of tasks. These packages themselves are a very good reason to learn Python, as there exists a very strong international community that is continually developing open source tools. You can find them broadly across the internet, but the most common (and trust-worthy/secure) are in central repositories:\n",
+    "\n",
+    "- PyPI - The Python Package Index https://pypi.org\n",
+    "    - installation is generally: `pip install <packageName>`\n",
+    "- Conda - https://docs.anaconda.com/anaconda/packages/pkg-docs/\n",
+    "    - installation is generally: `conda install <packageName>`\n",
+    "\n",
+    "The JupyterHub software that we are using allows a single computing environment to be set up and used by the entire group. As such, you DO NOT need to install any packages if you are using the server that is set up for this course. If you want to run any of this code on your own personal computer, or on a server you set up yourself, you will need to install the appropriate packages.\n",
+    "\n",
+    "These packages add diverse types of functionality, such as: \n",
+    "- advanced mathematical processing\n",
+    "- graphing capabilities\n",
+    "- chemical structure visualization\n",
+    "- the ability to interface with and control scientific instruments\n",
+    "\n",
+    "We will use a relatively small subset of common packages through this course, but we will occasionally use specialized ones to showcase capabilities. Today, we will see some basic functionality from two very common packages:\n",
+    "- **numpy** - a package for making and manipulating numeric arrays. It is integrated with C/C++ code, which greatly speeds up calculations. (https://numpy.org/)\n",
+    "- **matplotlib** - a popular and powerful graphing package. (https://matplotlib.org/index.html)\n",
+    "    - We will use the pyplot API portion of this package  (https://matplotlib.org/api/pyplot_api.html)\n",
+    "    \n",
+    "\n",
+    "We can import the packages by simply using the <font color=\"blue\">import</font> command. However, we will almost always import packages with abbreviations to facilitate use:\n",
+    "```\n",
+    "import <package> as <abbreviation>\n",
+    "```\n",
+    "- packages typically have a common abbreviation that is easily found in the examples in code documentation. It is highly advisable to stick to convention whenever writing code because it facilitates understanding of your code, makes it less likely for you to make errors, and - perhaps most importantly - makes it easier for you to troubleshoot by using Google."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "from ipywidgets import interact\n",
+    "\n",
+    "# echem.py is a module written FOR THIS COURSE.  It lives in the Resources\n",
+    "# folder, so python needs to be told where to look for it before importing it.\n",
+    "import sys\n",
+    "if '../Resources' not in sys.path:\n",
+    "    sys.path.append('../Resources')\n",
+    "\n",
+    "import echem\n",
+    "echem.use_style()       # applies Resources/jupyter.mplstyle. Feel free to customize!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Documentation & Hotkeys\n",
+    "\n",
+    "Here comes the fun part! When you import a package, you typically want to use **methods** that are contained within it. **Matplotlib** can, for example, take a series of variables from you and return a graph...but exactly what information do you need to provide it? And how does it give it to you? It is very hard to make effective use of a package if you don't know this information.\n",
+    "\n",
+    "The methods are essentially functions that are designed to act on some input to provide a desired modification/output. It is very important to consider not only *what you expect*, but also *what is expected of you*! Think:\n",
+    "- What information do you need to provide? \n",
+    "- What format should any input variables be in? \n",
+    "- How many output variables should you expect? \n",
+    "\n",
+    "\n",
+    "A quick Google search will provide you with oodles of pages of documentation for any package you choose to use. This can be very powerful, but is often tedious. Several tricks are built into the Jupyter environment to help you proceed in an efficient manner:\n",
+    "- `Tab` - pressing tab while you are in the middle of typing a word will check all options currently available (core python language + any loaded packages) and provide you with a list of possibilities. This is a useful shortcut in many situations and can help you explore unknown capabilities. Once you get comfortable with conventions, it also provides a shortcut to find methods that *you think* should exist.\n",
+    "- ``Shift+Tab`` - this provides you a popup window with the *doc-string* associated with the selected word. The doc-string is a body of text that was written by the authors to tell you about the selected word.\n",
+    "\n",
+    "Try test these shortcuts in the code block below"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Try pressing shift+tab for each line of code below. Move the cursor to a different part of each line and try press Shift+Tab again\n",
+    "\n",
+    "limit = 4*np.pi                # press shift+tab on np, and on pi. press tab at the end of pi. Run the cell then press shift+tab on \"limit\"\n",
+    "x = np.linspace(0, limit, 100)   # returns evenly spaced series of numbers\n",
+    "y1 = np.sin(x)\n",
+    "plt.plot(x, y1, marker='^')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "- Practice looking at all code blocks you see during the course and identifying which pieces are:\n",
+    "    - variables/objects\n",
+    "    - modules\n",
+    "    - functions/methods\n",
+    "    - arguments\n",
+    "\n",
+    "\n",
+    "- A sample of code and its format are given below. Do you undertand what each *argument* in that line of code does? What can you do if you are uncertain?\n",
+    "    \n",
+    "    ```\n",
+    "    x = np.linspace(0,limit,600)\n",
+    "    ```\n",
+    "    ```\n",
+    "    variable = module.method(arguments)\n",
+    "    ```"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Persistence of Objects\n",
+    "We cannot recall or modify any objects in later code cells unless we explicitly assign them to a variable. \n",
+    "\n",
+    "The figure above was plotted without assigning it to a variable; we have no means of finding it in the computer's memory. If we want to access it later we have to remake it. We can see this in action by trying to plot a second set of data, (x, y2), into the figure in a new cell:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y2 = 2*np.sin(2*x-np.pi/4)\n",
+    "plt.plot(x, y2)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We DID save **x**, **limit** and **y1** into memory by assigning variables. They are now accessible in any cell in the notebook by simply typing their variable name, as we did for **x** above.\n",
+    "\n",
+    "- Note that after running the code to define a variable in a cell we can even scroll upwards and use that variable in an earlier cell in the Jupyter Notebook. Be careful, though, because this can cause some nasty loops if you aren't careful!\n",
+    "        \n",
+    "Lets assign a variable to a figure such that we can modify it later on. We will also begin creating <font color=\"blue\">matplotlib.pyplot.subplot</font> objects: \n",
+    "\n",
+    "```\n",
+    "axis_name = plt.subplot(###)\n",
+    "```\n",
+    "\n",
+    "Where the ### contains 3 digits that correspond, in order, to:\n",
+    "- the number of rows\n",
+    "- the number of columns\n",
+    "- the index\n",
+    "    \n",
+    "These subplots allow us to define and access separate groups of axes such that we can make multiple panel figures, maintain control over where any specific dataset gets plotted, and enable advanced formatting."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig = plt.figure()      # define a pyplot figure named fig\n",
+    "\n",
+    "ax = plt.subplot(111)   # 111 gives a single-panel figure\n",
+    "\n",
+    "# Note that this command SPECIFICALLY calls the ax object, not the fig object\n",
+    "ax.plot(x, y1)           # pay attention to the format:   object.method(arguments)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We will now add a new sine-wave to the figure which has double the frequency.\n",
+    "\n",
+    "**Run the next cell several times and observe what happens**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "y2 = np.sin(2*x)\n",
+    "ax.plot(x, y2)\n",
+    "\n",
+    "# an alternative is to use gca, which stands for \"get current axis\". The line below chains together two functions/methods\n",
+    "# fig.gca().plot(x,y2)\n",
+    "\n",
+    "ax.set_title('Sine Waves')\n",
+    "ax.set_xlabel('x axis')\n",
+    "ax.set_ylabel('y axis')\n",
+    "\n",
+    "fig             # naming the figure object redisplays it. plt.show() would show nothing here: the inline backend closes figures at the end of the cell that made them."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**You should have noticed** that the new higher frequency curve changed color every time you executed the cell. This is because you kept adding additional lines to the fig object - the changing colors are because a new dataset is continually being added on top of the old one. \n",
+    "\n",
+    "**Run the next code cell several times and watch what happens.**"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig = plt.figure()  # define a pyplot figure named fig\n",
+    "ax = plt.subplot(111)  # the 111 are  rows,columns, index    --- a 122 would be the second panel in a figure with 1 row and 2 columns\n",
+    "ax.plot(x,y1)\n",
+    "\n",
+    "y2 = np.sin(2*x-np.pi/4)\n",
+    "ax.plot(x,y2)\n",
+    "\n",
+    "ax.set_title('Sine Waves')\n",
+    "ax.set_xlabel('x axis')\n",
+    "ax.set_ylabel('y axis')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The figure is now stable, with no color changes, because the cell redefines the **fig** object every time the cell is executed.\n",
+    "\n",
+    "The point of this exercise is that it is easy to get lost in your code. The concept here holds true for all objects you define and use, such as numbers and numeric arrays. If you want to perform a mathematical operation on objects, you need to be careful not to accidentally introduce errors by repeating it n-times!\n",
+    "\n",
+    "Lets approach figure making a more conventional way, where we create and plot the figure all at once. A third sine wave will also be defined, then a fourth variable will be defined that is the sum of all three. We will then plot them side-by-side for comparison."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# create figure\n",
+    "fig2 = plt.figure(figsize=(7,2.625))   #we can define the size of the figure, inches by default, and the resolution in dpi\n",
+    "ax1 = plt.subplot(121)                      #1 row, 2 columns, index 1 (left panel)\n",
+    "ax2 = plt.subplot(122)                      #1 row, 2 columns, index 2 (right panel)\n",
+    "\n",
+    "# Calculate our third data series\n",
+    "y3 = np.sin(3*x + np.pi/8)\n",
+    "\n",
+    "# sum of the three data series\n",
+    "ysum = y1 + y2 + y3\n",
+    "\n",
+    "# plot out the data data\n",
+    "ax1.plot(x, y1, x, y2, x, y3)               # notice that we can plot multiple x,y pairs simultaneously. We could also do it across separate lines\n",
+    "ax2.plot(x,ysum)\n",
+    "\n",
+    "# add labels\n",
+    "ax1.set_title('Individual Sine Waves')\n",
+    "ax2.set_title('An Interference Pattern')\n",
+    "\n",
+    "for i in (ax1, ax2):                        # here we define a \"tuple\" and use it in a \"for\" loop to simplify a repetitive task. \n",
+    "    i.set_xlabel('Time')\n",
+    "    i.set_ylabel('intensity')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "One of the perks of assigning your figure to a variable is that it is now in memory, so you can add things to it on the fly, like change some formatting or write it to disk.\n",
+    "- The next cell will write a file into the folder where the notebook is located.\n",
+    "- you can change the name of the file by simply changing the filename\n",
+    "- you can control the type of image saved by changing the .jpg extension. Modify the code and save the figure as a:\n",
+    "    - png\n",
+    "    - eps\n",
+    "    - tif\n",
+    "- you can define a large range of properties, such as dpi (resolution), transparency and white-space padding around the image. Press `Shift+Tab` to see!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "fig2.savefig('../Workspace/Lesson2-Figure1.jpg')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Note that in this class we will always define locations on the hard drive in a **RELATIVE** sense. \n",
+    "- The \"../\" portion of the line directs the code to move UP one directory"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Streamlining Your Code\n",
+    "\n",
+    "As you can see, there is absolute flexibility in what you can do, and therefore in what you can accomplish. To avoid getting lost you need to think carefully about WHAT YOU WANT TO DO, then find the shortest way there. It is important to do occasional tests as you build up complex pieces of coding to ensure that it is behaving as you expect it to - think of it as calibration of your experiments.\n",
+    "\n",
+    "The goal is to accomplish your task using the shortest, cleanest, most easily updatable way possible. The previous figure can be made from scratch like this:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "#Define our figure and subplot axes\n",
+    "fig3 = plt.figure(figsize=(7,2.625))\n",
+    "ax1 = plt.subplot(121)\n",
+    "ax2 = plt.subplot(122)\n",
+    "limit = 6*np.pi\n",
+    "\n",
+    "#define values for sine wave frequency and phase shift in a numpy array, define custom line styles in a tuple, and labels for a legend in a tuple.\n",
+    "sinParameters = np.array(\n",
+    "    [\n",
+    "        [1., 4., 6.],\n",
+    "     [0.,np.pi/4,np.pi/8]\n",
+    "    ]\n",
+    ")\n",
+    "lineFormats = ('-','--','-.')\n",
+    "dataLabels = ('component 1','component 2','component 3')\n",
+    "\n",
+    "#define x and initialize ysum \n",
+    "x = np.linspace(0,limit,600)\n",
+    "ysum = x*0\n",
+    "\n",
+    "#Calculate three different sine waves according to the parameters in the sinParameters array, then plot them to ax1\n",
+    "for i in range(sinParameters[0].size):                           \n",
+    "    y = np.sin(x*sinParameters[0,i]-sinParameters[1,i])\n",
+    "    ax1.plot(x, y, lineFormats[i], label=dataLabels[i])\n",
+    "    ysum = ysum + y\n",
+    "\n",
+    "#Plot the sum of all individual waves in ax2    \n",
+    "ax2.plot(x,ysum)\n",
+    "\n",
+    "#apply formatting to both sets of axes\n",
+    "for i in (ax1, ax2):               \n",
+    "    i.set_xlabel('Time')\n",
+    "    i.set_ylabel('Intensity')\n",
+    "    i.set_ylim(-3,2.5) #shared axis limit for both figure panels so we visualize differences in intensity\n",
+    "    i.set_xlim(0,limit)\n",
+    "\n",
+    "#Place the legend in ax1 and show plot\n",
+    "ax1.legend(loc='upper right')\n",
+    "fig3.savefig('../Workspace/Lesson2-Figure2.jpg')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Take your time and review the code cell above.** Try manipulating the code and monitor the effect on the figure.\n",
+    "- change *limit* to a new value\n",
+    "- change the *lineFormats* to explore possibilities (https://matplotlib.org/2.1.2/api/_as_gen/matplotlib.pyplot.plot.html)\n",
+    "- add a fourth sine wave component\n",
+    "- modify the equation, and the variables necessary, such that you can define a separate AMPLITUDE for each individual sine wave component"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "**Note:** A new (optional) feature will be introduced here - the use of the <font color='blue'>jupyter-matplotlib widget</font>. This widget is activated by what is known as a jupyter *magic*...which essentially means a shortcut. The first line of the following code block is this *magic*:\n",
+    "```\n",
+    "%matplotlib widget\n",
+    "```\n",
+    "This command must be given before the matplotlib figure is made. It will enable you to interact (zoom, pan, save, etc.) with the final figure. You are welcome to introduce this magic at any point in any of the lessons to make the figures more interactive. If you wish to turn it off, you can redirect the figure to standard notebook format with this command:\n",
+    "```\n",
+    "%matplotlib inline\n",
+    "```"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "%matplotlib widget\n",
+    "#Define our figure and subplot axes\n",
+    "fig4 = plt.figure(figsize=(7,2.625))\n",
+    "ax1 = plt.subplot(121)\n",
+    "ax2 = plt.subplot(122)\n",
+    "\n",
+    "#define values for sine wave frequency and phase shift in a numpy array, define custom line styles in a \"tuple\" (a list), and labels for a legend in a tuple.\n",
+    "sinParameters = np.array([[1.,2.,3.],\n",
+    "                          [0.,np.pi/4,np.pi/8],\n",
+    "                          [-0.2, -0.1, -0.5]])\n",
+    "lineFormats = ('-','--','-.')\n",
+    "dataLabels = ('line1','line2','line3')\n",
+    "\n",
+    "#define x and initialize ysum\n",
+    "limit = 6*np.pi\n",
+    "x = np.linspace(0,limit,600)\n",
+    "ysum = x*0     \n",
+    "\n",
+    "#Calculate three different sine waves according to the data above, then add them to ax1\n",
+    "for i in range(sinParameters[0].size):                           \n",
+    "    y = np.power(np.e,x*sinParameters[2,i]) * np.sin(2*x*sinParameters[0,i]-sinParameters[1,i]*np.pi)\n",
+    "    ax1.plot(x,y, lineFormats[i], label=dataLabels[i])\n",
+    "    ysum = ysum + y\n",
+    "\n",
+    "#Plot the sum of all individual waves in ax2    \n",
+    "ax2.plot(x,ysum)\n",
+    "\n",
+    "#apply formatting to both sets of axes\n",
+    "for i in (ax1, ax2):               \n",
+    "    i.set_xlabel('k')\n",
+    "    i.set_ylabel(r'$\\chi$')\n",
+    "    i.set_ylim(1.1*ysum.min(),1.1*ysum.max()) #shared axis limit so we visualize differences in intensity\n",
+    "    i.set_xlim(0,limit)\n",
+    "\n",
+    "#Place the legend in ax1 and show plot\n",
+    "ax1.legend(loc='upper right')\n",
+    "fig4.savefig('../Workspace/Lesson2-Figure3.png')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "# Practice Assignment\n",
+    "\n",
+    "Imagine that you have a solution of *A* that proceeds spontaneously via a 1$^{st}$ order reaction to *B*:\n",
+    "\\begin{equation}\n",
+    "A_{aq} \\rightarrow B_{aq}\n",
+    "\\end{equation}\n",
+    "\n",
+    "1. Create variables to simulate the change in relative concentration of A (i.e., C$_A$/[C$_A$ + C$_B$] ) with time. You will need to pick a *k* value.\n",
+    "2. Use matplotlib.pyplot to visualize the data.\n",
+    "3. Create a second dataset that shows the relative concentration of *B* with time. Add it to the graph from step 1.\n",
+    "4. Create a second panel in your figure that converts the relative concentration into a specific concentration - perhaps your initial solution was 0.5 mol L$^{-1}$, or 0.035 mol L$^{-1}$. "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python (updated)",
+   "language": "python",
+   "name": "fullyupdated"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

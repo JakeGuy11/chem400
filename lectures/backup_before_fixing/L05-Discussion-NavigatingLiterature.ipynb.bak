@@ -1,0 +1,141 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "a49a732f-004f-4d1f-8dee-e893bd30296a",
+   "metadata": {},
+   "source": [
+    "# Discussion 1: Navigating the Literature\n",
+    "\n",
+    "Your final assignment is worth a significant portion of your grade in this course. You are expected to invest appropriate effort into it. Do not leave it to the last minute - start browsing the literature today, select a topic that you find interesting within the next week or two, then begin really researching the topic. \n",
+    "\n",
+    "This discussion class will introduce some tools and provide some guidance to help you:\n",
+    "- Software for collecting and organizing references, then inserting citations into your document\n",
+    "- Resources to search the academic literature\n",
+    "- Some basic strategies to get you started\n",
+    "---"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "26c65666-5974-4bda-a6c6-bc60f5d2641d",
+   "metadata": {},
+   "source": [
+    "# 1. Bibliographic Tools "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "47473be0-2acd-4d54-bb91-8f768f5dc58d",
+   "metadata": {},
+   "source": [
+    "## Software \n",
+    "It is important to keep a record of what you're reading when you research a topic in the literature. Your process could be as simple as using something like Word or Excel to keep notes on the papers you read. However, there are a lot of modern tools that will make things easier for you.\n",
+    "\n",
+    "Two very popular free options include: \n",
+    "\n",
+    "- [Mendeley](https://www.mendeley.com/?interaction_required=true)\n",
+    "- [Zotero](https://www.zotero.org/)\n",
+    "\n",
+    "These packages are quite similar to each other, with the main difference being that Mendeley is offered by a commercial publisher while Zotero is a free and open-source software package developed by the community. Both have:\n",
+    "- Ability to manage a library of references (think iTunes for PDFs)\n",
+    "- Ability to mark up PDFs and take notes on them\n",
+    "- Add-ons that allow you to capture references and their PDFs direct from common web browsers\n",
+    "- Add-ons that allow you to insert citations and a bibliography directly into a Word document\n",
+    "\n",
+    "The University of Waterloo library maintains some resources for [Reference Management Software](https://uwaterloo.ca/library/research-supports/reference-management-software)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "c1ad9f7c-8573-4a45-9f75-a0494e730d86",
+   "metadata": {},
+   "source": [
+    "## Citations\n",
+    "\n",
+    "Your written report will require you to discuss the work of others. This means you have to cite it effectively. In practice, you add a *citation* in the document where relevant. This is generally a superscripted number at the end of the sentence.$^1$ In some formats, it could instead be a bracketed number [1]. The citations are all numbered in the order in which they appear, then listed in a reference list/bibliography at the end of the document. Completeness and formatting of the reference list are important. Read through ACS Style Guide for information on this:\n",
+    "\n",
+    "[ACS Style Guide](https://pubs.acs.org/doi/full/10.1021/acsguide.40303)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "3604efc4-780d-48b0-87ef-626d43928aec",
+   "metadata": {},
+   "source": [
+    "# 2. Google Scholar"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "2c45d9e7-952b-45e4-9d1c-75b31fc62076",
+   "metadata": {},
+   "source": [
+    "Google is exceptional at digging through an immense amount of information to give you what you searched for. This can be empowering, but also distracting. My recommendation is to use Google, or the specialized Google Scholar, to initiate a search when you know very little about what you're looking for. \n",
+    "\n",
+    "When you don't know what you're looking for, you need to gain exposure until you decide that you do know what you're looking for. You may decide you want to research electrocatalysis, but have no idea what terminology to use for searching. Google will present you with a wealth of information - but experience shows that this information is quite biased and prone to \"Google bombing\". If you solely rely on Google to search, you are likely to struggle to get very deep in the knowledge you seek."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "1f3c459c-e83d-4c65-a63b-846973a1aba7",
+   "metadata": {},
+   "source": [
+    "# 3. Web Of Knowledge"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6a326240-e8bf-4227-a6b5-819cc445f64a",
+   "metadata": {},
+   "source": [
+    "Web of Knowledge is a search engine that is specialized for navigating the academic literature. It is far more selective than a Google search, which makes it challenging to get started with, but ultimately provides you an ability to ask better questions and find better materials. It is a subscription based service that UWaterloo pays for; you will need to be on campus (eduroam or hardwired), or connected to the VPN while at home. "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "719e53b0-8686-4e3b-b2f4-711a4dd43d60",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Activity:</b> Pick a topic and begin searching for information on it, and strategically digging deeper. If you have downloaded reference management software, import the references into it as you go.\n",
+    "    <br>\n",
+    "    1. Pick a topic and begin searching using Google. Identify 5 published articles that sound interesting, skim them, and note words that keep appearing. \n",
+    "    <br>\n",
+    "    2. Load a paper or two that cited the work you initially found. Skim through these as well, noting key words\n",
+    "    <br>\n",
+    "    3. Use the keywords you noted to begin a search using Web of Knowledge. Play with combinations of words until you start seeing articles that seem relevant to you. \n",
+    "    <br>\n",
+    "    4. Play with the sorting and filtration to select out 10 promising papers; save them to your library.\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "6976f6f2-d7d5-4784-bb08-2273858a8aa4",
+   "metadata": {},
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python (updated)",
+   "language": "python",
+   "name": "fullyupdated"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.12.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

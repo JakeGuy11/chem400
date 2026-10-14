@@ -1,0 +1,759 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Lesson 31: Electrochemical Impedance Spectroscopy\n",
+    "\n",
+    "With improvements in computers and electronic engineering, the complexity of measurement techniques in electrochemistry has continually expanded. One particularly powerful approach involves the oscillation of voltages at a designated frequency, and analysis of the resulting current flow.\n",
+    "\n",
+    "Today's topics:\n",
+    "- Electrochemical Impedance Spectroscopy\n",
+    "- Ideal behavior: resistors and capacitors\n",
+    "- Application to electrochemical systems\n",
+    "\n",
+    "**Reference:**\n",
+    "- Ch.10 in *Electrochemical Methods: Fundamentals and Applications*, Allen J. Bard & Larry R. Faulkner.\n",
+    "---"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Configure Environment"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import sys\n",
+    "if '../Resources' not in sys.path:\n",
+    "    sys.path.append('../Resources')     # so that echem.py can be found\n",
+    "\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "from ipywidgets import interact, widgets\n",
+    "from IPython.display import display\n",
+    "import schemdraw\n",
+    "import schemdraw.elements as elm\n",
+    "\n",
+    "import echem                            # the shared toolkit for this course\n",
+    "from echem import R, T, F, f, WIDE      # constants and the two-panel figure size\n",
+    "echem.use_style()                       # course-wide graph formatting"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 1. Electrochemical Impedance Spectroscopy\n",
+    "\n",
+    "The term *spectroscopy* means that we are now working with waves and frequencies. Electrochemical impedance spectroscopy (EIS) is the entry level to sinusoidal waveform-based measurements, with significantly more complex experiments possible. For example, alternating-current voltammetry, harmonic alternating-current voltammetry and intermodulation voltammetry are all possible. These techniques can be immensely powerful for analysis, but the results are incredibly complex and must be approached with care - even by experts in the field. This course will focus exclusively on EIS.\n",
+    "\n",
+    "## EIS Waveform\n",
+    "\n",
+    "The waveform is a sinusoidal voltage with time. The basic parameters to control the waveform include:\n",
+    "- $\\omega$: the frequency of voltage oscillations. This value can vary over ~10 orders of magnitude\n",
+    "- $E_{amp}$: the amplitude of oscillations. This is typically chosen to be small (~5-10 mV) such that the system remains near equilibrium during the measurement.\n",
+    "- $E_{eq}$: the potential at which of the electrochemical system is equilibrated during measurement. \n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "@interact(frequency=widgets.FloatLogSlider(value=100, min=-3, max=6,\n",
+    "                                           description=r'$f$ (Hz)'),\n",
+    "          amp=widgets.FloatText(value=0.005, step=0.001, description=r'$E_{amp}$ (V)'),\n",
+    "          cycles=widgets.BoundedIntText(value=1, min=1, max=10, description='Repetitions'))\n",
+    "def plot_eis_waveform(frequency, amp, cycles):\n",
+    "    '''The EIS perturbation: a small sine wave about the resting potential.\n",
+    "\n",
+    "    Note that this slider sets the ORDINARY frequency f, in Hz.  The angular\n",
+    "    frequency in the impedance equations is omega = 2 pi f.\n",
+    "    '''\n",
+    "    t, e = echem.sine_waveform(frequency, amplitude=amp, cycles=cycles)\n",
+    "\n",
+    "    fig = plt.figure()\n",
+    "    ax = plt.subplot()\n",
+    "    ax.set_xlabel(r'$t$ /s')\n",
+    "    ax.set_ylabel(r'$E$ /V vs $E_{eq}$')\n",
+    "    ax.plot(t, e)\n",
+    "    ax.set_title(rf'$\\omega = 2\\pi f$ = {2*np.pi*frequency:.1f} rad s$^{{-1}}$', fontsize=8)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Mathematical Models\n",
+    "\n",
+    "From previous discussion, it should be apparent that this perturbation to voltage will result in a perturbation in current that must be monitored. To develop a mathematical model for this we treat both voltage and current as rotating vectors, referred to as *phasors*:\n",
+    "\n",
+    "<img src='../Resources/images/phasor.png' width=30%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "These phasors are described by:\n",
+    "1. **Magnitude**: the maximum amplitude of the vector:\n",
+    "\n",
+    "    $ \\large \\dot{E} = E_{amp}$\n",
+    "    \n",
+    "2. **Direction**: the direction in which the vector points, given here as the angle $\\theta$\n",
+    "3. **Rotation rate**: the oscillation frequency $\\omega$:\n",
+    "\n",
+    "From a conceptual basis, one aligns their eye along the $\\theta=0$ axis and monitors the tip of the arrow representing the phasor. All that one would see is an up-down oscillation, which is exactly the sine-wave present in the interactive figure above. Mathematically, we represent this:\n",
+    "\n",
+    "$\n",
+    "\\large e = \\dot{E}sin(\\omega t)\n",
+    "$\n",
+    "\n",
+    "Where the $e$ variable is deflection of the arrow tip from the $\\theta=0$ axis."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Current and voltage are related by Ohm's law, which means that a sinusoidal response in current flow through the system should occur with at an identical frequency. We are not certain, however, whether these oscillations will be synchronized, or at what magnitude they will be. A similar treatment can be done for the current, with the introduction of a **phase shift** ($\\phi$). This parameter signifies the phase angle difference between the voltage and current phasors:\n",
+    "\n",
+    "$\n",
+    "\\large i = \\dot{I}sin(\\omega t + \\phi)\n",
+    "$\n",
+    "\n",
+    "Since both vectors rotate at the same frequency, we can experimentally use one phasor (most commonly $e$, which is more easily controlled) as a reference point for the second phasor (typically $i$).\n",
+    "\n",
+    "The experiment therefore involves the sinusoidal oscillation of $e$ at chosen $\\omega$ for time $t$ while simultaneously measuring the response in $i$. The response in $i$ tells us $\\dot{I}$, and comparison with $e$ yields $\\phi$. This complete characterization then enables interpretation of exactly what is occurring in the chemical system. In the most common form of experiment, EIS is performed at varied $\\omega$ values such that the frequency-dependent response of the system can be monitored. This provides great insight into the nature of the reactions, and enables analysis of reaction kinetics across a very wide range of timeframes. More advanced analysis explores voltage-dependent and frequency-dependent changes. The mathematical framework must be developed to handle a response to the sinusoidal perturbation."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "@interact(frequency=widgets.FloatLogSlider(value=100, min=-3, max=6,\n",
+    "                                           description=r'$f$ (Hz)'),\n",
+    "          amp=widgets.FloatText(value=0.005, step=0.001, description=r'$E_{amp}$ (V)'),\n",
+    "          cycles=widgets.BoundedIntText(value=1, min=1, max=10, description='Repetitions'),\n",
+    "          phi=widgets.FloatSlider(value=45, min=0, max=360, step=5,\n",
+    "                                  description='Phase Shift (degrees)'),\n",
+    "          iamp=widgets.FloatText(value=0.005, step=0.001, description=r'$i_{amp}$ (A)'))\n",
+    "def plot_phase_shift(frequency, amp, phi, iamp, cycles):\n",
+    "    '''Voltage and current oscillate at the same frequency, but not in step.\n",
+    "\n",
+    "    The phase angle phi between them is the measurement.  phi = 0 is a pure\n",
+    "    resistor; phi = 90 degrees is a pure capacitor.\n",
+    "    '''\n",
+    "    t, e = echem.sine_waveform(frequency, amplitude=amp, cycles=cycles)\n",
+    "    _, i = echem.sine_waveform(frequency, amplitude=iamp, cycles=cycles, phase_deg=phi)\n",
+    "\n",
+    "    fig = plt.figure()\n",
+    "    ax = plt.subplot()\n",
+    "    ax2 = plt.twinx(ax)\n",
+    "    ax.set_xlabel(r'$t$ /s')\n",
+    "    ax.set_ylabel(r'$E$ /V vs $E_{eq}$')\n",
+    "    ax2.set_ylabel(r'$i$ /A')\n",
+    "\n",
+    "    ax.plot(t, e, 'blue', label=r'$E$')\n",
+    "    ax2.plot(t, i, 'red', label=r'$i$')\n",
+    "    fig.legend(fontsize=6, loc=1)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 2. Electronic Components\n",
+    "\n",
+    "Analysis of EIS results requires that we simulate (or fit) the obtained results using theoretical circuits. A basic understanding of circuit elements is therefore necessary.\n",
+    "\n",
+    "## Resistors\n",
+    "\n",
+    "A resistor is simply a body that resists the flow of electrons according to Ohm's law. From the perspective of EIS, our experimental variables are $e$ and $i$:\n",
+    "\n",
+    "$\n",
+    "\\large e = iR\n",
+    "$\n",
+    "\n",
+    "The symbol for a resistor is:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "two_electrode_circuit = schemdraw.Drawing(inches_per_unit=0.75)\n",
+    "two_electrode_circuit.add(elm.Resistor(label='Resistor (R)', fontsize=12))\n",
+    "\n",
+    "# annotate diagram\n",
+    "fig = two_electrode_circuit.draw()\n",
+    "two_electrode_circuit.save('../Workspace/R.png')\n",
+    "display(fig)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Based on the equations for our phasors above, we can also write out variations on Ohm's law using the amplitude of the vectors:\n",
+    "\n",
+    "$\n",
+    "\\large \\dot{E} = \\dot{I}R\n",
+    "$\n",
+    "\n",
+    "and:\n",
+    "\n",
+    "$\n",
+    "\\large \\dot{I} = \\dot{E}/R\n",
+    "$\n",
+    "\n",
+    "From these equations, it is clear that there is **no angle dependence**. Therefore, the two vectors can be considered to be aligned. This means that they will be **in-phase** and an EIS measurement will show perfect synchronization (note that the units are different and overlap of magnitudes is not meaningful):"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# A pure resistor: current follows voltage exactly.  Phase angle is zero.\n",
+    "FREQUENCY = 1.0     # Hz\n",
+    "CYCLES = 1\n",
+    "AMP_E = 0.005       # V\n",
+    "AMP_I = 0.005       # A\n",
+    "\n",
+    "t, e = echem.sine_waveform(FREQUENCY, amplitude=AMP_E, cycles=CYCLES)\n",
+    "_, i = echem.sine_waveform(FREQUENCY, amplitude=AMP_I, cycles=CYCLES, phase_deg=0)\n",
+    "\n",
+    "fig = plt.figure()\n",
+    "ax = plt.subplot()\n",
+    "ax2 = plt.twinx(ax)\n",
+    "ax.set_xlabel(r'$t$ /s')\n",
+    "ax.set_ylabel(r'$E$ /V vs $E_{eq}$')\n",
+    "ax2.set_ylabel(r'$i$ /A')\n",
+    "ax.plot(t, e, 'blue', label=r'$E$')\n",
+    "ax2.plot(t, i, 'red', label=r'$i$', linestyle='--')\n",
+    "ax.set_title(r'Resistor: $\\phi = 0$', fontsize=8)\n",
+    "fig.legend(fontsize=6)\n",
+    "\n",
+    "fig.savefig('../Workspace/EIS_resistor.png')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Capacitors\n",
+    "\n",
+    "A capacitor is a component that can store electrical charge across a voltage. The simplest form of capacitor is a parallel plate capacitor, where two metal plates are held parallel and a voltage is applied: it temporarily passes current to accumulate charge on the surfaces.\n",
+    "\n",
+    "The symbol for a capacitor is:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "two_electrode_circuit = schemdraw.Drawing(inches_per_unit=0.75)\n",
+    "two_electrode_circuit.add(elm.Capacitor(label='Capacitor (C)', fontsize=12))\n",
+    "\n",
+    "# annotate diagram\n",
+    "fig = two_electrode_circuit.draw()\n",
+    "two_electrode_circuit.save('../Workspace/C.png')\n",
+    "display(fig)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Mathematically, the charge ($q$) stored by a capacitor is determined by its **capacitance** (C) and voltage ($e$):\n",
+    "\n",
+    "$\n",
+    "\\large q = Ce\n",
+    "$\n",
+    "\n",
+    "Charge is defined as the integral of current over time ($q = it$). Therefore, we can rewrite:\n",
+    "\n",
+    "$\n",
+    "\\large i = C\\frac{\\delta e}{\\delta t}\n",
+    "$\n",
+    "\n",
+    "Recall that:\n",
+    "\n",
+    "$\n",
+    "\\large e = \\dot{E}sin(\\omega t)\n",
+    "$\n",
+    "\n",
+    "Taking the first derivative of this equation with respect to time:\n",
+    "\n",
+    "$\n",
+    "\\large \\frac{\\delta e}{\\delta t} = \\omega\\dot{E}cos(\\omega t)\n",
+    "$\n",
+    "\n",
+    "Substituting these equations:\n",
+    "\n",
+    "$\n",
+    "\\large i = \\omega \\dot{E} C cos(\\omega t)\n",
+    "$\n",
+    "\n",
+    "A cosine wave is simply a sine wave that is shifted by 90 degrees (or $\\pi$/2 radians):\n",
+    "\n",
+    "$\n",
+    "\\large i = \\omega \\dot{E} C sin(\\omega t + \\pi/2)\n",
+    "$\n",
+    "\n",
+    "It is common to alter this by defining a parameter $X_C$:\n",
+    "\n",
+    "$\n",
+    "\\large  X_C = \\frac{1}{\\omega C}\n",
+    "$\n",
+    "\n",
+    "Such that:\n",
+    "\n",
+    "$\n",
+    "\\large i = \\frac{\\dot{E}}{X_C} sin(\\omega t + \\pi/2)\n",
+    "$"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The key outcome here is that both $e$ and $i$ change during the experiment and both have an angle dependence. The phasors are $\\pi/2$ out of phase such that $\\dot{E}$ is real and $\\dot{I}$ is imaginary. Mathematically:\n",
+    "\n",
+    "$\n",
+    "\\large \\dot{E} = -j X_C \\dot{I}\n",
+    "$\n",
+    "\n",
+    "The $\\phi = \\pi/2$ results in a shifted response in measured current:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# A pure capacitor: current LEADS voltage by 90 degrees.\n",
+    "_, i_capacitor = echem.sine_waveform(FREQUENCY, amplitude=AMP_I,\n",
+    "                                     cycles=CYCLES, phase_deg=90)\n",
+    "\n",
+    "fig = plt.figure()\n",
+    "ax = plt.subplot()\n",
+    "ax2 = plt.twinx(ax)\n",
+    "ax.set_xlabel(r'$t$ /s')\n",
+    "ax.set_ylabel(r'$E$ /V vs $E_{eq}$')\n",
+    "ax2.set_ylabel(r'$i$ /A')\n",
+    "ax.plot(t, e, 'blue', label=r'$E$')\n",
+    "ax2.plot(t, i_capacitor, 'red', label=r'$i$', linestyle='--')\n",
+    "ax.set_title(r'Capacitor: $\\phi = \\pi/2$', fontsize=8)\n",
+    "fig.legend(fontsize=6)\n",
+    "\n",
+    "fig.savefig('../Workspace/EIS_capacitor.png')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Summary\n",
+    "\n",
+    "These two circuit elements are by far the most common used - in fact, you can likely do an entire lifetime of research in electrochemistry and rarely use more than these two circuit elements. The most important difference between them is the phase angle, $\\phi$. To summarize expectations:\n",
+    "\n",
+    "- $\\phi=0$ is expected for a pure resistor\n",
+    "- $\\phi=\\pi/2$ is expected for a pure capacitor\n",
+    "- $0 \\lt \\phi < \\pi/2$ will be observed for anything in between "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Activity:</b> Without looking below, predict the phase angle you would measure for each of these, and say which circuit element each one behaves like.\n",
+    "</div>\n",
+    "\n",
+    "| System | Predicted $\\phi$ | Behaves like |\n",
+    "|---|---|---|\n",
+    "| Electrolyte solution between two electrodes | ANSWER | ANSWER |\n",
+    "| A perfectly polarizable electrode passing no Faradaic current | ANSWER | ANSWER |\n",
+    "| An electrode with fast electron transfer at high frequency | ANSWER | ANSWER |"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "There are many other circuit elements that can be utilized, provided there is a rational reason to do so. One common element that you may come across in your literature searches is the **constant phase element**, which represents an imperfect capacitor. By this, we mean that the measured capacitance values are not independent of frequency. This has the effect of distorting the data relative to what is expected. The symbol for this element is:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "two_electrode_circuit = schemdraw.Drawing(inches_per_unit=0.75)\n",
+    "two_electrode_circuit.add(elm.CPE(label='Constant phase element (Q)', fontsize=12))\n",
+    "\n",
+    "# annotate diagram\n",
+    "fig = two_electrode_circuit.draw()\n",
+    "two_electrode_circuit.save('../Workspace/Q.png')\n",
+    "display(fig)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 3. Combining Circuit Elements\n",
+    "\n",
+    "## RC Series\n",
+    "The combination of circuit elements together will alter their behavior. Consider for example the placement of a resistor and a capacitor **in series**:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "two_electrode_circuit = schemdraw.Drawing(inches_per_unit=0.75)\n",
+    "two_electrode_circuit.add(elm.Resistor())\n",
+    "two_electrode_circuit.add(elm.Capacitor())\n",
+    "\n",
+    "# annotate diagram\n",
+    "fig = two_electrode_circuit.draw()\n",
+    "two_electrode_circuit.save('../Workspace/RC_series.png')\n",
+    "display(fig)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "When placed in series, the voltage across the cell would be additive:\n",
+    "\n",
+    "$\n",
+    "\\large \\dot{E} = \\dot{E_R} + \\dot{E_C}\n",
+    "$\n",
+    "\n",
+    "The relationship developed between $\\dot{E}$ and $\\dot{I}$ for the capacitor can be substituted in to yield:\n",
+    "\n",
+    "$\n",
+    "\\large \\dot{E} = \\dot{I}(R-jX_C)\n",
+    "$\n",
+    "\n",
+    "Which we will redefine as:\n",
+    "\n",
+    "$\n",
+    "\\large \\dot{E} = \\dot{I}Z\n",
+    "$\n",
+    "\n",
+    "Where $Z$ is **impedance** of the cell, which is frequently represented using numerous conventions:\n",
+    "\n",
+    "$\n",
+    "\\large Z = R-jX_C = Z_{re} - jZ_{im} = Z' - jZ''\n",
+    "$\n",
+    "\n",
+    "If we bring back the original definition of $X_C$, we see the frequency dependence of the circuit:\n",
+    "\n",
+    "$\n",
+    "\\large Z(\\omega) = R - \\frac{j}{\\omega C}\n",
+    "$"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Again, the EIS experiment is to oscillate $e$ at varied $\\omega$ and monitor $i$ and $\\phi$. The results can be presented in numerous ways, with each having a particular strength. The two most common are the **Nyquist representation** and the **Bode representation**.\n",
+    "\n",
+    "The Nyquist representation plots $Z_{re}$ (real resistance) on the X-axis and $Z_{im}$ on the Y-axis. For this particular circuit, the resistor offers a static $Z_{re}$, while the capacitor induces a change in $Z_{im}$ with frequency:\n",
+    "\n",
+    "<img src='../Resources/images/nyquist.png' width=30%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The Bode representation plots the total impedance $Z$ and the phase angle $\\phi$ as a function of frequency:\n",
+    "\n",
+    "<img src='../Resources/images/bode.png' width=60%>\n",
+    "\n",
+    "Our earlier discussion established that $\\phi$ values of 0 and 90 signify pure resistance and pure capacitance, respectively. Therefore, the Bode representation provides us valuable insights in this situation which the Nyquist representation doesn't: the placement of a resistor and capacitor in series results in a transition from one extreme to another. At high frequencies of $e$ variation we will see only the resistor, but at low frequencies we will see only the capacitor. "
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## RC Parallel\n",
+    "\n",
+    "Let us consider the other simple case, the placement of a resistor and capacitor in parallel:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "two_electrode_circuit = schemdraw.Drawing(inches_per_unit=0.75)\n",
+    "two_electrode_circuit.add(elm.Dot(open=True).right())\n",
+    "two_electrode_circuit.add(elm.Line().right())\n",
+    "two_electrode_circuit.add(elm.Resistor(label=r'R = 100 $\\Omega$'))\n",
+    "two_electrode_circuit.add(elm.Line().down())\n",
+    "two_electrode_circuit.add(elm.Line().right())\n",
+    "two_electrode_circuit.add(elm.Dot(open=True).left())\n",
+    "\n",
+    "two_electrode_circuit.add(elm.Line().left())\n",
+    "two_electrode_circuit.add(elm.Capacitor(label=r'C = 1 $\\mu F$').left())\n",
+    "two_electrode_circuit.add(elm.Line().up())\n",
+    "\n",
+    "# annotate diagram\n",
+    "fig = two_electrode_circuit.draw()\n",
+    "two_electrode_circuit.save('../Workspace/RC_parallel.png')\n",
+    "display(fig)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "In this situation, the Nyquist representation provides much useful information (numbers on graph represent $\\omega$ at the denoted points):\n",
+    "\n",
+    "<img src='../Resources/images/nyquist-parallel.png' width=30%>\n",
+    "\n",
+    "Careful inspection of this semicircular graph should reveal that many of our parameters can be rapidly extracted:\n",
+    "\n",
+    "1. **Resistance**: the diameter of the semicircle is exactly equal to the resistance of the resistor element\n",
+    "2. **Capacitance**: the apex of the circle corresponds to the capacitance of the capacitor element. Specifically:\n",
+    "\n",
+    "$ \n",
+    "\\large \\omega = \\frac{1}{RC}\n",
+    "$\n",
+    "\n",
+    "As will be seen, this observation of semicircular data is critically important for electrochemistry. The ability to quickly extract meaningful information at a glance is a characteristic of Nyquist plots."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The Bode representation:\n",
+    "\n",
+    "<img src='../Resources/images/bode-parallel.png' width=30%>\n",
+    "\n",
+    "We can once again see the transition between purely capacitive and purely resistive behavior, which is reversed compared to the elements placed in series with each other. This is quickly deduced by inspection of the phase angle portion of the data. Inspection of the data rapidly yields the:\n",
+    "\n",
+    "1. **Resistance**: the height of the impedance plateau where $\\phi=0$ \n",
+    "\n",
+    "There is no direct way to extract capacitance from this data, it would require mathematical simulation."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 4. Application to Electrochemistry\n",
+    "\n",
+    "Application of EIS to electrochemistry relies on the development of a circuit model that emulates the observed experimental behavior. The process often involves an initial guess, followed by a least-squares fitting routine. As is the case with fitting of data, this process is full of pitfalls!\n",
+    "\n",
+    "Some Warnings: \n",
+    "1. **No circuit is unique.** You can always draw another circuit that will yield the same behavior.\n",
+    "2. **Frequency dispersion** is the variation of results with $\\omega$. This can occur even in our \"ideal\" parameters ($R_\\omega$ and $C$).\n",
+    "3. **Statistical analysis** is a requirement for any modelling. This necessitates careful thought and justification of your model.\n",
+    "\n",
+    "The basic mathematical rules in building circuits:\n",
+    "\n",
+    "**Resistors in series** are additive:\n",
+    "\n",
+    "$\n",
+    "\\large R_T = R_1 + R_2 + ... R_n\n",
+    "$\n",
+    "\n",
+    "**Resistors in parallel** are additive in reciprocal space:\n",
+    "\n",
+    "$\n",
+    "\\large \\frac{1}{R_T} = \\frac{1}{R_1} + \\frac{1}{R_2} + ... \\frac{1}{R_n}\n",
+    "$\n",
+    "\n",
+    "**Impedance** ($Z$) is a generalized form of resistance, we rely on application of these rules to simulate the model. This is rarely done by hand - software packages that enable you to \"draw\" circuits and fit experimental results are readily available."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## The Randles Circuit\n",
+    "\n",
+    "The Randles-circuit is ubiquitous in electrochemistry. It is the basic component used to describe electrochemical cells. The circuit, marked up with the charging current ($i_c$) and Faradaic current ($i_f$) is:\n",
+    "\n",
+    "<img src='../Resources/images/randles.png' width=60%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The components are:\n",
+    "\n",
+    "- $R_\\Omega$: resistance in the electrolyte solution of the electrochemical cell and instrumentation\n",
+    "- $C_d$: double layer capacitance\n",
+    "- $Z_f$: a complex circuit element consisting of a resistive and capacitive element. Multiple forms exist, but most commonly they are a series RC or a resistor with a *Warburg element*\n",
+    "- $R_{ct}$: charge transfer resistance (see [Lesson 12](L12-Kinetics-II-Tafel.ipynb))\n",
+    "- $Z_w$: Warburg element; captures mass transfer limitations in the electrochemical response"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The simulated Nyquist response of this circuit showing the effect of a Warburg element:\n",
+    "\n",
+    "<img src='../Resources/images/randles-nyquist.png' width=60%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Useful Applications\n",
+    "\n",
+    "EIS is capable of directly measuring $i_0$ and $k^0$ values. If the system is analyzed in the particular situation where $C_O(0,t) = C_R(0,t)$, then:\n",
+    "\n",
+    "$\n",
+    "\\large R_{CT} = \\frac{RT}{F i_0} = R_s - \\frac{1}{\\omega C_s}\n",
+    "$\n",
+    "\n",
+    "Where $R_s$ and $C_s$ are the resistance and capacitance of the **series equivalent circuit** measured at frequency $\\omega$ -- not the solution resistance $R_\\Omega$ (see Bard & Faulkner eq. 10.3.5).\n",
+    "\n",
+    "The limitations to such measurements are dependent on the **electrochemical time constant** of the cell, $\\tau$:\n",
+    "\n",
+    "$\n",
+    "\\large \\tau = R_\\Omega C_d\n",
+    "$\n",
+    "\n",
+    "The **upper limit** in capabilities of EIS is when \n",
+    "\n",
+    "$\n",
+    "\\large \\tau < 1/\\omega\n",
+    "$ \n",
+    "\n",
+    "At this point:\n",
+    "\n",
+    "$\n",
+    "\\large k^0 \\leq \\sqrt{\\frac{D \\omega}{2}}\n",
+    "$\n",
+    "\n",
+    "For typical systems, this represents $k^0 \\leq$ 10 cm s$^{-1}$\n",
+    "\n",
+    "The **lower limit** is near:\n",
+    "\n",
+    "$\n",
+    "\\large R_{CT} \\leq \\frac{1}{\\omega C_d}\n",
+    "$\n",
+    "\n",
+    "For typical systems, this represents $k^0 \\geq 10^{-6} cm s^{-1}$.\n",
+    "\n",
+    "A simple EIS experiment, which takes several minutes, therefore enables direct measurement of $k^0$ over ~7 orders of magnitude."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---\n",
+    "# Literature Examples\n",
+    "\n",
+    "EIS factors heavily into the analysis of semiconductors in all types of photovoltaics and photoelectrochemical technologies. For example:\n",
+    "\n",
+    "[2012 J. Am. Chem. Soc. 134, 4294-4302](https://doi.org/10.1021/ja210755h)\n",
+    "\n",
+    "\n",
+    "<img src='../Resources/images/jacs2012.png' width=30%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "An extremely diverse range of electrochemical systems and behaviors yields an equally diverse range of behaviors to be studied. For example:\n",
+    "\n",
+    "[2012 J. Phys. Chem. Lett. 3, 2517-2522.](https://doi.org/10.1021/jz3010909)\n",
+    "\n",
+    "<img src='../Resources/images/2012jpcl.png' width=60%>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Activity:</b> The text above warns that fitting a circuit model is \"full of pitfalls\" because more than one circuit can fit the same data.\n",
+    "<br>\n",
+    "Given a Nyquist plot that fits both a Randles circuit and a more elaborate alternative, list three pieces of evidence outside the fit itself that you would use to choose between them.\n",
+    "</div>\n",
+    "\n",
+    "1. ANSWER\n",
+    "2. ANSWER\n",
+    "3. ANSWER"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-danger\">\n",
+    "<b>Memory Check:</b> $R_{CT} = RT/(Fi_0)$ lets EIS measure the exchange current directly. Where did $i_0$ come from, and what does a <b>small</b> charge transfer resistance tell you about the reaction?\n",
+    "</div>"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python (updated)",
+   "language": "python",
+   "name": "fullyupdated"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}

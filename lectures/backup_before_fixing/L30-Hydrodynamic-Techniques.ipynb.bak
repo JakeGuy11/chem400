@@ -1,0 +1,653 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Lesson 30: Hydrodynamic Techniques\n",
+    "\n",
+    "Today's topics:\n",
+    "- Rotating Disk Voltammetry\n",
+    "- Rotating Ring-Disk Voltammetry\n",
+    "\n",
+    "**Reference:**\n",
+    "- Ch.9 in *Electrochemical Methods: Fundamentals and Applications*, Allen J. Bard & Larry R. Faulkner.\n",
+    "---"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Configure Environment"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import sys\n",
+    "if '../Resources' not in sys.path:\n",
+    "    sys.path.append('../Resources')     # so that echem.py can be found\n",
+    "\n",
+    "import numpy as np\n",
+    "import matplotlib.pyplot as plt\n",
+    "from ipywidgets import interact, widgets\n",
+    "import matplotlib.patches as mpatches\n",
+    "\n",
+    "import echem                            # the shared toolkit for this course\n",
+    "from echem import R, T, F, f, WIDE      # constants and the two-panel figure size\n",
+    "echem.use_style()                       # course-wide graph formatting\n",
+    "\n",
+    "NU_WATER = echem.KINEMATIC_VISCOSITY['H2O']     # cm2/s"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 1. Behavior Regimes\n",
+    "\n",
+    "To this point we have focused on extracting numeric parameters describing electrochemical reactions that exist in one of two **limiting situations**:\n",
+    "1. Mass transfer limited: observed current-potential behavior is completely reliant on the mass transfer co-efficient ($m_j$)\n",
+    "2. Electron transfer kinetics limited: observed current-potential behavior is completely reliant on electron transfer kinetics ($i_0$ or $k^0$)\n",
+    "\n",
+    "Analysis of the reaction system can be greatly simplified if one can adjust the experimental parameters so that one of these limiting cases is forced. In cyclic voltammetry, for example, one can attempt to vary the scan rate to transition between limiting situations. This may work wonderfully, or it may fail horribly - depending on the characteristics of the system being studied. \n",
+    "\n",
+    "[Lesson 27](L27-CyclicVoltammetry.ipynb) demonstrated that the intermediate case where kinetics and mass transfer are convoluted CAN be studied, but with significant difficulty. It is always far simpler to analyze the behavior of an electrochemical system if it is pushed into a limiting situation. Hydrodynamic techniques are very useful in achieving this."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# The two limiting situations we have worked in so far\n",
+    "alpha = 0.5\n",
+    "conc_o = 1e-3\n",
+    "conc_r = 1e-3\n",
+    "overpotential = np.linspace(-1.0, 1.0, 501)\n",
+    "\n",
+    "fig = plt.figure()\n",
+    "ax = plt.subplot()\n",
+    "ax.set_xlabel(r'$\\eta$ / V')\n",
+    "ax.set_ylabel(r'$i / i_{lim}$  (anodic positive)')\n",
+    "\n",
+    "for i_lim_over_i0 in [10000.0, 10.0]:\n",
+    "    current = echem.current_overpotential(overpotential, i_lim_over_i0,\n",
+    "                                          alpha=alpha, conc_ratio=conc_r/conc_o)\n",
+    "    ax.plot(overpotential, current,\n",
+    "            label=rf'$\\alpha={alpha}, i_{{lim}}/i_0={i_lim_over_i0:g}$')\n",
+    "    if i_lim_over_i0 == 10000.0:\n",
+    "        # highlight the region where kinetics, not transport, set the current\n",
+    "        kinetic = (overpotential > -0.48) & (overpotential < 0.48)\n",
+    "        ax.plot(overpotential[kinetic], current[kinetic], color='#0000ff50', linewidth=6)\n",
+    "        ax.annotate('kinetically limited', (-0.9, 0.), fontsize=6, color='blue')\n",
+    "\n",
+    "for coord in [(0.6, 0.5), (-0.6, -0.5)]:\n",
+    "    ax.add_artist(mpatches.Ellipse(coord, 0.8, 0.1, angle=0, alpha=0.2))\n",
+    "ax.annotate('mass transfer limited', (-0.2, -0.51), fontsize=6, color='gray')\n",
+    "ax.axvline(0.45, linestyle=':')\n",
+    "ax.legend(loc=(0.05, 0.75), fontsize=6)\n",
+    "\n",
+    "fig.savefig('../Workspace/LimitingSituations.png')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Activity:</b> Sketch a concentration profile that is representative of the initial (open circuit), and the point where the dashed vertical line crosses each of the two curves in the figure above. Identify the important parameters needed to describe current response for each of these two points.\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 2. Rotating Disk Electrochemistry\n",
+    "\n",
+    "You are hopefully becoming comfortable with the idea that everything in electrochemistry represents some *characteristic* behavior: slow kinetics leads to exponential E-i relationships, while slow mass transfer yields the shape of the Nernst equation. We can sometimes transition between these two regimes by controlling experimental parameters such as scan rate or sampling time, but there is a limit to how widely you can vary these parameters. Effectively then, none of the techniques we have seen yet are capable of extracting any information regarding electron transfer kinetics for reactions characterized by very high kinetics relative to mass transfer (i.e., a small $i_{lim}/i_0$). \n",
+    "\n",
+    "We can overcome this barrier with a little bit of experimental creativity. In general, the strategy is to find ways to adjust either $i_{lim}$ or $i_0$ without affecting the other. The first example, which will be explored today, introduces **convection** such that $i_{lim}$ can be intentionally manipulated. Such an approach will clearly not affect $i_0$, which enables one to explore the kinetics for a wider range of electrochemical reactions - specifically, it enables the measurement of significantly larger $k^0$ values. Broadly, this approach is referred to as **hydrodynamic electrochemistry**."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-danger\">\n",
+    "<b>Memory Check:</b> What are the primary modes of mass transfer in an electrochemical cell?\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## The Rotating Disk Electrochemistry Apparatus\n",
+    "\n",
+    "The most effective method available to perform hydrodynamic electrochemistry is the **rotating disk electrode** (RDE). The setup for this technique is conceptually simple: a disk electrode is mounted into some cylindrical body and that cylindrical body is rotated at a varied rate. Practically, this necessitates a motor and a controller for that motor. There is a growing number of companies and designs for these, but they generally look like this (a Pine Research RDE and a Gamry motor controller):\n",
+    "\n",
+    "<img src='../Resources/images/rde-equipment.png' width=30%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Rotation of the disk electrode increases the rate of mass transfer at the electrode surface - it very efficiently brings matter from bulk solution to the electrode surface. The rotation accomplishes this by forcing horizontal flow of the solution from the axis of rotation outwards. This flow forces an increase in vertical solution flow from bulk solution to the electrode surface. **When well-controlled**, these movements create highly effective movement of the solution across the electrode surface following well-defined flow fields:\n",
+    "\n",
+    "<img src='../Resources/images/rde-flow.png' width=30%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The shape of these flow fields is dependent upon the **angular velocity** ($\\omega$; units of rad s$^{-1}$) of the RDE. This value is directly controlled by the frequency ($f$) of revolutions:\n",
+    "\n",
+    "$\n",
+    "\\large \\omega = 2\\pi f\n",
+    "$\n",
+    "\n",
+    "Frequency is often set in units of *revolutions per minute* on equipment - care must be taken to convert to $\\omega$ using the correct units.  Higher rotation rates will yield steeper/sharper flow fields and less curvature across the surface - in other words, each molecule will spend less time in contact with the electrode surface.\n",
+    "\n",
+    "While conceptually simple, there are of course practical issues that arise. The first is that all theory assumes **laminar flow** of the solution, as opposed to **turbulent flow**. Turbulence can arise on the surface for a number of reasons, including imperfections on the surface of the electrode, design of the reaction cell used for your electrochemistry experiments, or the deposition/dissolution of material on the electrode surface during the experiment.\n",
+    "\n",
+    "<img src='../Resources/images/laminar-flow.png' width=40%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Expected Behavior\n",
+    "\n",
+    "The mass-transfer limited behavior has been established in several lessons, including [Lesson 14](L14-Mass-Transfer-Limitations.ipynb) and [Lesson 20](L20-SampledCurrent.ipynb). We have seen that the mass-transfer limited currents can be generalized as:\n",
+    "\n",
+    "$\n",
+    "\\large |i_{lim,j}| = nFAm_jC_j^*\n",
+    "$\n",
+    "\n",
+    "and that the *mass transfer coefficient* is a function of the geometry of diffusion. For an RDE, $m_j$ becomes:\n",
+    "\n",
+    "$\n",
+    "\\large m_j = 0.62 \\frac{D_j^{2/3}\\sqrt{\\omega}}{\\nu^{1/6}}\n",
+    "$\n",
+    "\n",
+    "Where $\\nu$ is the kinematic viscosity of the solution. This value is dependent on solution composition and temperature, but typical values of $\\nu$ at 25C are:"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "|Solution|$\\nu$, cm$^2$/s|\n",
+    "|---|---|\n",
+    "|$H_2O$ | 0.009132 |\n",
+    "|$D_2O$|0.01028|\n",
+    "|$CH_3CN$| 0.004536|\n",
+    "|$DMSO$|0.01896|\n",
+    "|$Pyridine$|0.009518|\n",
+    "|$Dimethylformamide$|0.008971|"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "This mass transfer coefficient leads to the **Levich Equation**, which describes the current that will be measured at an RDE:\n",
+    "\n",
+    "$\n",
+    "\\large i_{lim} = 0.62nFA \\frac{D_j^{2/3}\\sqrt{\\omega}}{\\nu^{1/6}}C_j^*\n",
+    "$\n",
+    "\n",
+    "In effect, the magnitude of the mass transfer limited current is **altered** by the thickness of the diffusion layer. In this situation, the diffusion layer is constant and faster rotation leads to a decrease in its size.\n",
+    "\n",
+    "$\n",
+    "\\large \\delta_j = 1.61 \\frac{D_j^{1/3}\\nu^{1/6}}{\\sqrt{\\omega}}\n",
+    "$\n",
+    "\n",
+    "This can be visualized from the dimensionless perspective:\n",
+    "\n",
+    "<img src='../Resources/images/rde-diffusionlayer.png' width=30%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-success\">\n",
+    "<b>Diffusion Layers in RDE:</b> Mass transfer limited currents are limited in RDE by tuning a steady-state diffusion layer thickness. This is affected by the diffusion coefficient, solution viscosity, and rotation rate.\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The same mathematical handling as done in [Lesson 14](L14-Mass-Transfer-Limitations.ipynb) yields the expected behavior:\n",
+    "\n",
+    "$\n",
+    "\\large E = E^{0'} - \\frac{RT}{nF}ln\\left[ \\left(\\frac{D_O}{D_R}\\right)^{2/3} \\right] + \\frac{RT}{nF}ln\\left[ \\frac{i - i_{lim,c}}{i_{lim,a}-i} \\right]\n",
+    "$\n",
+    "\n",
+    "We can see this behavior in action for our generic electrochemical reaction, where $C_R/C_T = 1$:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "@interact(rpm=widgets.FloatSlider(value=1000., min=100, max=5000, step=100,\n",
+    "                                  description=r'$\\omega$ (rpm)'),\n",
+    "          e_0=widgets.FloatSlider(value=0.0, min=-0.2, max=0.2, step=0.01,\n",
+    "                                  description=r\"$E^{0'}$\"),\n",
+    "          d_r=widgets.FloatLogSlider(value=1e-5, min=-10, max=0, description=r'$D_R$'),\n",
+    "          d_o=widgets.FloatLogSlider(value=1e-5, min=-10, max=0, description=r'$D_O$'),\n",
+    "          nu=widgets.FloatText(value=NU_WATER, description=r'$\\nu$'))\n",
+    "def plot_rde_wave(rpm, e_0, d_r, d_o, nu):\n",
+    "    '''The RDE wave: Nernstian in shape, Levich in height.\n",
+    "\n",
+    "    Rotation rate moves the plateau up and down without changing the shape,\n",
+    "    which is exactly what makes the technique so useful.\n",
+    "    '''\n",
+    "    if nu <= 0:\n",
+    "        print('The kinematic viscosity must be greater than zero.')\n",
+    "        return\n",
+    "    conc = 1e-6         # mol/cm3\n",
+    "    n, area = 1, 1.0\n",
+    "    fraction = np.linspace(0.0001, 0.9999, 301)     # i/i_lim\n",
+    "\n",
+    "    # The wave shape.  The (D_O/D_R)^(2/3) term is the RDE version of the\n",
+    "    # m_O/m_R shift met in Lesson 14.\n",
+    "    def wave(e_formal, diff_o, diff_r):\n",
+    "        return (e_formal - np.log(np.power(diff_o/diff_r, 2/3))/f\n",
+    "                + np.log(fraction/(1 - fraction))/f)\n",
+    "\n",
+    "    # Reference case: 1000 rpm, E0' = 0, D_O = D_R = 1e-5, water\n",
+    "    omega_control = echem.rpm_to_rad(1000.)\n",
+    "    e_control = wave(0.0, 1e-5, 1e-5)\n",
+    "    i_lim_control = echem.levich(omega_control, conc, 1e-5, NU_WATER, area, n)\n",
+    "\n",
+    "    # Interactive case.  rpm_to_rad matters: the Levich equation wants rad/s.\n",
+    "    omega = echem.rpm_to_rad(rpm)\n",
+    "    e = wave(e_0, d_o, d_r)\n",
+    "    i_lim = echem.levich(omega, conc, d_r, nu, area, n)\n",
+    "\n",
+    "    fig = plt.figure()\n",
+    "    ax = plt.subplot()\n",
+    "    idx_half = echem.nearest_index(fraction, 0.5)\n",
+    "    ax.axhline(1000*i_lim_control/2, linestyle=':', color='black')\n",
+    "    ax.axvline(e_control[idx_half], linestyle=':', color='black')\n",
+    "    ax.axhline(1000*i_lim/2, linestyle=':', color='red')\n",
+    "    ax.axvline(e[idx_half], linestyle=':', color='red')\n",
+    "\n",
+    "    ax.plot(e_control, 1000*fraction*i_lim_control, color='black',\n",
+    "            label=r'1000 rpm, $E^{0}=0$, $D_R=D_O=10^{-5}$')\n",
+    "    ax.plot(e, 1000*fraction*i_lim, color='red', label='interactive settings')\n",
+    "    ax.legend(fontsize=5, loc=2)\n",
+    "    ax.set_xlabel(r'$E$ /V')\n",
+    "    ax.set_ylabel(r'i /mA')\n",
+    "    ax.set_title(rf'$\\omega$ = {omega:.0f} rad s$^{{-1}}$', fontsize=8)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Manipulation of the interactive diagram above should convince you that the behavior is reminiscent of that seen for sampled current voltammetry, or for ultramicroelectrodes. The quantitative behavior is subtly different, however, because the mass transfer coefficient term is different. This leads to a smaller dependence of $E_{1/2}$ on variations in $D_O/D_R$."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 3. Application of RDE\n",
+    "\n",
+    "Notice that $i_{l,j}$ is proportional to $\\sqrt{\\omega}$, but that the shape and location of the wave are static. We can therefore deduce that $i(E)$ must be proportional to $\\sqrt{\\omega}$ when the system is under diffusion control. This presents a beautifully straightforward means to check for *electrochemical reversibility*:\n",
+    "- Hold $E$ constant while varying $\\omega$\n",
+    "- Plot $I(E)$ vs. $\\sqrt{\\omega}$\n",
+    "    - Any deviations from linearity indicates that the system is not electrochemically reversible - there is some contribution from electron transfer kinetics, interfering reactions, or instrumental limitations"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The first figure in this lesson demonstrates the behavior that we have become accustomed to: mass transfer limitations provide a plateau in attainable current density, with kinetics only potentially observable below this value. RDE flips this situation: the ability to adjust mass transfer limitations makes it viable for kinetics to impose the fundamental limit. We saw in [Lesson 11](L11-Kinetics-I-ButlerVolmer.ipynb) that the maximum current permitted by reaction kinetics is described as:\n",
+    "\n",
+    "$\n",
+    "\\large i = FAk_c(E)C_O(x=0)\n",
+    "$\n",
+    ""
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "@interact(k_a=widgets.FloatLogSlider(value=1e-2, min=-10, max=3, description=r'$k_a(E)$'))\n",
+    "def plot_kl_currents(k_a):\n",
+    "    '''Kinetic and transport limits, side by side against sqrt(omega).\n",
+    "\n",
+    "    i_K is flat: kinetics do not care how fast you spin.  i_lim rises as\n",
+    "    sqrt(omega).  The measured current is whichever is smaller.\n",
+    "    '''\n",
+    "    conc, diff, n, area = 1e-6, 1e-5, 1, 1.0\n",
+    "    nu = 0.01           # cm2/s, a round number for this illustration\n",
+    "\n",
+    "    omega = np.logspace(0.5, 5, 500)                # rad/s\n",
+    "    i_lim = echem.levich(omega, conc, diff, nu, area, n)\n",
+    "    i_k = echem.kinetic_current(k_a, conc, area, n)\n",
+    "    current = echem.koutecky_levich(i_k, i_lim)\n",
+    "\n",
+    "    fig = plt.figure()\n",
+    "    ax = plt.subplot()\n",
+    "    ax.plot(np.sqrt(omega), 1000*current, label=r'$i$')\n",
+    "    ax.plot(np.sqrt(omega), np.full(omega.size, 1000*i_k), linestyle=':', label=r'$i_K$')\n",
+    "    ax.plot(np.sqrt(omega), 1000*i_lim, linestyle=':', label=r'$i_l$')\n",
+    "\n",
+    "    ax.legend(fontsize=6, loc=4)\n",
+    "    ax.set_ylim(0, 1.2*1000*current.max())\n",
+    "    ax.set_xlabel(r'$\\sqrt{\\omega}$  /(rad s$^{-1})^{1/2}$')\n",
+    "    ax.set_ylabel(r'$i$ /mA')"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "By varying rotation rate, what you are effectively accomplishing is varying the $i_0/i_{lim}$ parameter. This is another means to transition between *reversible, quasireversible and irreversible* behavior. Remember, the $i_k$ parameter is *voltage dependent*!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Activity:</b> Predict what will happen to the curve above as the overpotential is varied.\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 4. Data Processing\n",
+    "\n",
+    "In the presence of high convection rates the rate of reaction can be defined in a simple way (See Bard & Faulkner Section 9.3):\n",
+    "\n",
+    "$\n",
+    "\\large i = i_{lim,a}\\left[ \\frac{C_R^* - C_R(x=0)}{C_R^*} \\right]\n",
+    "$\n",
+    "\n",
+    "Rearranging this equation to isolate $C_R(x=0)$ and substituting into the equation for kinetic currents (Section 3 above) yields:\n",
+    "\n",
+    "$\n",
+    "\\large i = FAk_a(E)C_R^*(1-\\frac{i}{i_{lim,a}})\n",
+    "$\n",
+    "\n",
+    "The special situation where there is absolutely no mass transfer effects can be defined:\n",
+    "\n",
+    "$\n",
+    "\\large i_K = FAk_a(E)C_R^*\n",
+    "$\n",
+    "\n",
+    "\n",
+    "Rearrangement of the second equation yields what is referred to as the **Koutecky-Levich Equation**:\n",
+    "\n",
+    "$\n",
+    "\\large \\frac{1}{i} = \\frac{1}{i_K} + \\frac{1}{i_{lim}}\n",
+    "$\n",
+    "\n",
+    "Where $i_K$ is the specially defined kinetic current above and $i_{lim}$ is from the Levich equation."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Expansion of the Koutecky-Levich equation makes clear the power of this approach:\n",
+    "\n",
+    "$\n",
+    "\\large \\frac{1}{i} = \\frac{1}{FAk_a(E)C_R^*} + \\frac{1}{0.62nFA \\frac{D_j^{2/3}\\sqrt{\\omega}}{\\nu^{1/6}}C_j^*}\n",
+    "$"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The kinetically limited current shows no dependence on $\\omega$, but the mass-transport limited portion does. One can therefore plot the inverse current as a function of $1/\\sqrt{\\omega}$ for data measured at varied overpotentials:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "@interact(k_0=widgets.FloatLogSlider(value=1e-1, min=-9, max=2, description=r'$k^0$'),\n",
+    "          alpha=widgets.FloatSlider(value=0.5, min=0.1, max=0.9, step=0.02,\n",
+    "                                    description=r'$\\alpha$'))\n",
+    "def plot_koutecky_levich(k_0, alpha):\n",
+    "    '''Left: current vs sqrt(omega).  Right: the Koutecky-Levich plot.\n",
+    "\n",
+    "    Extrapolating 1/i to 1/sqrt(omega) = 0 removes transport entirely and leaves\n",
+    "    1/i_K, which is how kinetics are measured at an RDE.\n",
+    "    '''\n",
+    "    conc, diff, n, area = 1e-6, 1e-5, 1, 1.0\n",
+    "    overpotential = np.linspace(0.01, 0.15, 6)\n",
+    "    omega = np.logspace(0.5, 4.5, 500)              # rad/s\n",
+    "\n",
+    "    i_lim = echem.levich(omega, conc, diff, echem.KINEMATIC_VISCOSITY['H2O'], area, n)\n",
+    "    k_a, _ = echem.rate_constants(overpotential, k_0, alpha)\n",
+    "    i_k = echem.kinetic_current(k_a, conc, area, n)\n",
+    "\n",
+    "    fig = plt.figure(figsize=WIDE)\n",
+    "    ax1 = plt.subplot(121)\n",
+    "    ax2 = plt.subplot(122)\n",
+    "    for j, i_kinetic in enumerate(i_k):\n",
+    "        current = echem.koutecky_levich(i_kinetic, i_lim)\n",
+    "        label = rf'$\\eta=${overpotential[j]:0.3f}'\n",
+    "        ax1.plot(np.sqrt(omega), 1000*current, label=label)\n",
+    "        ax2.plot(1/np.sqrt(omega), 1/(1000*current), label=label)\n",
+    "\n",
+    "    ax1.legend(fontsize=6, loc=4)\n",
+    "    ax1.set_xlabel(r'$\\sqrt{\\omega}$  /(rad s$^{-1})^{1/2}$')\n",
+    "    ax1.set_ylabel(r'$i$ /mA')\n",
+    "    ax2.set_xlabel(r'$1/\\sqrt{\\omega}$')\n",
+    "    ax2.set_ylabel(r'$1/i$  /mA$^{-1}$')\n",
+    "    ax2.set_ylim(0, 1)\n",
+    "    ax2.set_xlim(0, 0.05)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Extracting meaningful information:</b> Consider the plots in the interactive figure above. What information can be extracted? How would you extract it? Summarize it in the cell below.\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Information that can be extracted:\n",
+    "- parameter 1: xxx\n",
+    "- parameter 2: yyy\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Quasireversibility \n",
+    "\n",
+    "The situation above was developed using equations for a kinetically facile reaction. If there are significant limitations in electron transfer kinetics such that quasi-reversible behavior is observed, the kinetic currents must be defined using the current overpotential equation. The Koutecky-Levich equation must therefore also be modified. To simplify it a bit, let us define a variable $b$ as a thermodynamic parameter:\n",
+    "\n",
+    "$\n",
+    "\\large b = \\exp{F\\eta / RT}\n",
+    "$\n",
+    "\n",
+    "$\n",
+    "\\Large \\frac{1}{i} = \\frac{b^\\alpha}{1-b} \\left[ \\frac{1}{i_0} + \\frac{1}{0.62 F A \\frac{\\sqrt{\\omega}}{\\nu^{1/6}}} \\left( \\frac{b^{-\\alpha}}{D_O^{2/3}C_O^*} + \\frac{b^{1-\\alpha}}{D_R^{2/3}C_R^*} \\right)  \\right]\n",
+    "$"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Optional Activity:</b> Use the empty code block below to plot the expected results for a quasireversible reaction.\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# develop quasireversible figure here"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 5. Experimental Limitations\n",
+    "\n",
+    "As tends to be the case, these theoretical equations have limitations. The most important limitation to note for RDE is that the equations do not hold at very high or very low rotation rates. Approximate limits can be calculated.\n",
+    "\n",
+    "In aqueous conditions, the viscosity is $\\approx 0.01$ cm$^2$ s$^{-1}$ and a standard electrode has a radius of $0.25$ cm.\n",
+    "\n",
+    "**Lower Limit**: This limit arises because there is insufficient convection to significantly alter the rate of mass transfer. The equations remain valid when:\n",
+    "\n",
+    "- $\\large \\omega > \\frac{10\\nu}{r^2}$\n",
+    "    - $\\large \\omega > 1.6 s^{-1}$ (15.3 r.p.m.)\n",
+    "\n",
+    "This limitation can be partially overcome by increasing the sampling time, for example by decreasing the scan rate of a linear sweep. This ensures that measurements are performed at a steady state.\n",
+    " \n",
+    " \n",
+    "**Upper Limit**: This limit arises when turbulence emerges in solution. It is highly dependent on the quality of your instrumentation, the design of your reaction cell, and your skill at preparing electrode surfaces. Considering the properties of water, the limit due to turbulence in an absolutely perfect system can be approximated at:\n",
+    "- $\\large \\omega < \\frac{200,000\\nu}{r^2}$\n",
+    "    - $\\large \\omega < 32,000 s^{-1}$ (306,000 r.p.m.)\n",
+    "    \n",
+    "This limit is clearly crazy! Rotating any mechanical device at 300,000 rpm is simply not achievable. In practice, the limits of most instrumentation are on the order of 10,000 rpm."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# 6. Rotating Ring-Disk Electrodes\n",
+    "\n",
+    "Manipulation of the flow of the solution using rotation introduces a secondary perk: the products from the reaction are directed in a controlled way. Specifically, each product molecule is shuttled horizontally relative to the surface. The introduction of a second working electrode that surrounds the first working electrode therefore introduces the ability to perform electrochemistry directly on the products. The schematic below depicts a cross-section of the **disk electrode** ($r_1$), separated by an insulating layer ($r_2-r_1$), surrounded by the secondary **ring electrode** ($r_3-r_2$).\n",
+    "\n",
+    "<img src='../Resources/images/rrde.png' width=10%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "These type of experiments require a specialized instrument that can measure using **4-electrodes**:\n",
+    "1. Disk working electrode for primary analysis\n",
+    "2. Ring working electrode for analysis of products\n",
+    "3. Reference electrode\n",
+    "4. Counter electrode\n",
+    "\n",
+    "Numerous modes of operation are available and commonly used. Generally, one can manipulate the potential of the ring ($E_R$) and/or the disk ($E_D$) while both $i_R$ and $i_D$ are monitored. While all molecules are directed towards the ring, not every single one will experience the electrochemical reaction. One must therefore consider the **collection efficiency** ($N$) of their apparatus:\n",
+    "\n",
+    "$\n",
+    "\\large N = \\frac{-i_R}{i_D}\n",
+    "$\n",
+    "\n",
+    "This efficiency is:\n",
+    "- typically on the order of 20-40%\n",
+    "- dependent on geometry of the electrode assembly \n",
+    "- a constant for a given electrode and independent of $\\omega$, $C_j^*$, $D_j$ so long as the redox process is fully reversible\n",
+    "- can be calibrated with an ideal system and then applied to study systems with unknown parameters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Consider the situation where:\n",
+    "- $E_D$ swept from $< E^0$\n",
+    "- $E_R$ is **CONSTANT**\n",
+    "\n",
+    "The expected behavior for a reversible system can be represented as a function of $E_D$:\n",
+    "\n",
+    "<img src='../Resources/images/rrde-general.png' width=30%>\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Consider the opposite situation, where:\n",
+    "- $E_R$ is **SWEPT**\n",
+    "- $E_D$ is held constant\n",
+    "\n",
+    "The expected behavior for this system can be represented as a function of $E_R$ ($E_D << E^0$ for 3, $E_D >> E^0$ for 4)\n",
+    "\n",
+    "<img src='../Resources/images/rrde-sweep.png' width=30%>"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "<div class=\"alert alert-block alert-info\">\n",
+    "<b>Activity:</b> The electrochemical oxidation of water can yield either peroxide ($H_2O_2$) or oxygen ($O_2$). Design an experiment where you can use RRDE to determine the identity of the product at a given voltage.\n",
+    "</div>"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python (updated)",
+   "language": "python",
+   "name": "fullyupdated"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
